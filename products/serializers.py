@@ -8,7 +8,7 @@ class ProductAddSerializer(serializers.ModelSerializer):
         fields = '__all__'
 
 
-class ProductMediaSerializer(serializers.ModelSerializer):
+class ProductAddMediaSerializer(serializers.ModelSerializer):
     class Meta:
         model = ProductMedia
         fields = '__all__'
