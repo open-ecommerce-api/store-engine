@@ -18,3 +18,12 @@ class Product(models.Model):
 
     def __str__(self):
         return self.name
+
+
+class ProductMedia(models.Model):
+    product = models.ForeignKey(Product, related_name='media', on_delete=models.CASCADE)
+    src = models.ImageField(upload_to='products/%Y/%m/%d/')
+    primary_image = models.BooleanField(default=False)
+
+    created_at = models.DateTimeField(auto_now_add=True)
+    updates_at = models.DateTimeField(auto_now=True, )
