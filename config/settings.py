@@ -41,6 +41,7 @@ INSTALLED_APPS = [
     'drf_spectacular',
 
     # Made by the team
+    'products',
     'users',
 ]
 
