@@ -8,7 +8,7 @@ class Product(models.Model):
     # an introduction of the product, Support HTML formatting.
     introduction = models.TextField(blank=True)
     active = models.BooleanField(default=True)
-
+    slug = models.SlugField(max_length=255, unique=True, allow_unicode=True)
     created_at = models.DateTimeField(auto_now_add=True)
     updates_at = models.DateTimeField(auto_now=True, )
 
