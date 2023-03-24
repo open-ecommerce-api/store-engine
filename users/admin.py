@@ -1,16 +1,31 @@
 from django.contrib import admin
-from django.contrib.auth.admin import UserAdmin
-from .models import CustomUser
-from .forms import CustomUserChangeForm, CustomUserCreationForm
+from django.contrib import admin
+from django.contrib.auth.admin import UserAdmin as BaseUserAdmin
+from .models import *
+from .forms import *
+from django.contrib.auth.models import Group
 
 
-class CustomUserAdmin(UserAdmin):
-    add_form = CustomUserCreationForm
-    form = CustomUserChangeForm
-    model = CustomUser
-    list_display = ['username', 'email', 'age', 'is_staff', ]
-    fieldsets = UserAdmin.fieldsets + ((None, {'fields': ('age',)}),)
-    add_fieldsets = UserAdmin.add_fieldsets + ((None, {'fields': ('age',)}),)
+
+class UserProfileManager(BaseUserAdmin):
+    form = UserCreateForm
+
+    list_display = ( 'email','name', 'is_admin','is_client', 'is_active')
+    list_filter = ( 'email', 'name', 'is_admin','is_client', 'is_active')
+    fieldsets = (
+        ('user', {'fields': ('email', "name", 'password', 'is_client','username')}),
+        ('persenal info', {'fields': ('is_admin',)}),
+        ('peremissions', {'fields': ('is_active',)}),
+    )
+    add_fieldsets = (
+        (None, {'fields': ('email', 'name', 'username','password1', 'password2', 'is_admin','is_client', 'is_active')}),
+
+    )
+    search_fields = ('email', 'username', 'name',)
+    ordering = ('email', 'username', 'name',)
+    filter_horizontal = ()
 
 
-admin.site.register(CustomUser, CustomUserAdmin)
+admin.site.register(User, UserProfileManager)
+admin.site.unregister(Group)
+
