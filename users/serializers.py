@@ -35,7 +35,7 @@ class UserRegisterationSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = User
-        fields = ('password', 'password2', 'email')
+        fields = ('email','password', 'password2', )
         
 
     def validate(self, attrs):
@@ -68,3 +68,42 @@ class UserLoginSerializer(serializers.Serializer):
         if user and user.is_active:
             return user
         raise serializers.ValidationError("Incorrect Credentials")
+
+
+
+
+class ChangePasswordSerializer(serializers.Serializer):
+    model = User
+    """
+    Serializer for password change endpoint.
+    """
+    old_password = serializers.CharField(required=True)
+    new_password = serializers.CharField(required=True)
+
+
+
+
+class ResetPasswordSerializer(serializers.ModelSerializer):
+    """
+    Serializer for password reset endpoint.
+
+    """
+    email = serializers.CharField()
+    password = serializers.CharField()
+    class Meta:
+        model=User
+        fields=['email', 'password']
+
+    def save(self):
+        email=self.validated_data['email']
+        password=self.validated_data['password']
+        #filtering out whethere email is existing or not, if your email is existing then if condition will allow your email
+        if User.objects.filter(email=email).exists():
+        #if your email is existing get the query of your specific email 
+            user=User.objects.get(email=email)
+            #then set the new password for your email
+            user.set_password(password)
+            user.save()
+            return user
+        else:
+            raise serializers.ValidationError({'error':'please enter valid crendentials'})
