@@ -43,6 +43,7 @@ INSTALLED_APPS = [
 
     # Made by the team
     'users',
+    'accounts',
 ]
 
 
