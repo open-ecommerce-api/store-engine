@@ -10,15 +10,15 @@ from django.contrib.auth.models import Group
 class UserProfileManager(BaseUserAdmin):
     form = UserCreateForm
 
-    list_display = ( 'email','name', 'is_admin','is_client', 'is_active')
-    list_filter = ( 'email', 'name', 'is_admin','is_client', 'is_active')
+    list_display = ( 'email','phone', 'is_admin','is_client', 'is_active')
+    list_filter = ( 'email', 'phone', 'is_admin','is_client', 'is_active')
     fieldsets = (
-        ('user', {'fields': ('email', "name", 'password', 'is_client','username')}),
+        ('user', {'fields': ('email', "phone", 'password', 'is_client','username')}),
         ('persenal info', {'fields': ('is_admin',)}),
         ('peremissions', {'fields': ('is_active',)}),
     )
     add_fieldsets = (
-        (None, {'fields': ('email', 'name', 'username','password1', 'password2', 'is_admin','is_client', 'is_active')}),
+        (None, {'fields': ('email', 'phone', 'username','password1', 'password2', 'is_admin','is_client', 'is_active')}),
 
     )
     search_fields = ('email', 'username', 'name',)
