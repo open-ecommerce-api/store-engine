@@ -52,7 +52,7 @@ class OTPLoginView(APIView):
 
 @api_view(["GET"])
 @permission_classes([IsAuthenticated])
-def User_logout_user(request):
+def User_logout(request):
 
     request.user.auth_token.delete()
 
