@@ -34,6 +34,7 @@ class User(AbstractBaseUser):
     password = models.CharField(max_length=128, null=True,blank=True)
     name = models.CharField(max_length=50, null=True)
     email = models.EmailField(max_length=30, unique=True, default=uuid.uuid1)
+    phone = models.CharField(max_length=11, unique=True, default=0)
     is_active = models.BooleanField(default=True)
     is_admin = models.BooleanField(default=False)
     is_client = models.BooleanField(default=False)
