@@ -25,7 +25,7 @@ class UserRegisterationSerializer(serializers.ModelSerializer):
     """
     Serializer class to serialize registration requests and create a new user.
     """
-
+    phone = serializers.CharField(max_length=11, allow_null=False)
     email = serializers.EmailField(
             required=True,
             validators=[UniqueValidator(queryset=User.objects.all())]
@@ -35,7 +35,7 @@ class UserRegisterationSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = User
-        fields = ('email','password', 'password2', )
+        fields = ('email','phone','password', 'password2', )
         
 
     def validate(self, attrs):
@@ -47,6 +47,7 @@ class UserRegisterationSerializer(serializers.ModelSerializer):
     def create(self, validated_data):
         user = User.objects.create(
             email=validated_data['email'], 
+            phone = validated_data['phone'],
         )
         user.set_password(validated_data['password'])
         user.save()
