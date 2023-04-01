@@ -23,7 +23,6 @@ from drf_spectacular.views import SpectacularAPIView, SpectacularSwaggerView, Sp
 urlpatterns = [
                   path('admin/', admin.site.urls),
                   path('user/', include('users.urls')),
-                  path('accounts/', include('accounts.urls')),
                 #   path('api-auth/', include('rest_framework.urls')),
                   # path('products/', include('products.urls')),
                   path("api/schema/", SpectacularAPIView.as_view(), name="schema"),  # need to generate swagger-ui
