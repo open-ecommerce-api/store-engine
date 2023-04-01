@@ -166,6 +166,12 @@ cython_debug/
 # and then running the same migrations on your colleagues’ machines, your staging machines, and eventually your
 # production machines.
 
-*/migrations/
+# Ignore Django Migrations in Development if you are working on team (Only for Development)
+#*/migrations/
+**/migrations/**
+!**/migrations
+!**/migrations/__init__.py
+
 media/
 static/
+
