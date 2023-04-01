@@ -25,7 +25,7 @@ class UserRegisterationSerializer(serializers.ModelSerializer):
     """
     Serializer class to serialize registration requests and create a new user.
     """
-    phone = serializers.CharField(max_length=11, allow_null=False)
+  
     email = serializers.EmailField(
             required=True,
             validators=[UniqueValidator(queryset=User.objects.all())]
@@ -78,7 +78,7 @@ class ChangePasswordSerializer(serializers.Serializer):
     Serializer for password change endpoint.
     """
     old_password = serializers.CharField(required=True)
-    new_password = serializers.CharField(required=True)
+    new_password = serializers.CharField(required=True,validators=[validate_password])
 
 
 
