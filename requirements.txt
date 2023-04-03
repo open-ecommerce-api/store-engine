@@ -1,6 +1,6 @@
 asgiref==3.6.0
 attrs==22.2.0
-Django==4.1.7
+Django==4.2
 djangorestframework==3.14.0
 djangorestframework-simplejwt==5.2.2
 drf-spectacular==0.26.1
@@ -8,8 +8,8 @@ inflection==0.5.1
 jsonschema==4.17.3
 Pillow==9.5.0
 postgres==4.0
-psycopg2==2.9.5
-psycopg2-binary==2.9.5
+psycopg2==2.9.6
+psycopg2-binary==2.9.6
 psycopg2-pool==1.1
 PyJWT==2.6.0
 pyrsistent==0.19.3
