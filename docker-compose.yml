@@ -14,7 +14,7 @@ services:
       - db
     
   db:
-    image: postgres:14
+    image: postgres:latest
     environment:
       - "POSTGRES_HOST_AUTH_METHOD=trust"
     ports:
