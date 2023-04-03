@@ -161,3 +161,17 @@ cython_debug/
 #  option (not recommended) you can uncomment the following to ignore the entire idea folder.
 #.idea/
 
+# The migration files for each app live in a “migrations” directory inside of that app, and are designed to be
+# committed to, and distributed as part of, its codebase. You should be making them once on your development machine
+# and then running the same migrations on your colleagues’ machines, your staging machines, and eventually your
+# production machines.
+
+# Ignore Django Migrations in Development if you are working on team (Only for Development)
+#*/migrations/
+**/migrations/**
+!**/migrations
+!**/migrations/__init__.py
+
+media/
+static/
+
