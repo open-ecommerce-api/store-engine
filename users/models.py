@@ -4,28 +4,28 @@ from django.contrib.auth.models import AbstractBaseUser, BaseUserManager
 from django.utils.translation import gettext_lazy as _
 
 class UserManager(BaseUserManager):
-    def create_userr(self, email, password):
+    
+    def create_user(self, email, password):
+        """
+        creates and saves a user with the given email and password
+        """
         if not email:
-            raise ValueError('please enter valid phone')
-        user = self.model(email=email, password=password)
+            raise ValueError('users must have an email address')
+        user = self.model(
+            email=self.normalize_email(email),
+            )
+        user.set_password(password)
         user.save(using=self._db)
         return user
+
+        
 
     def create_superuser(self, email, password):
-        user = self.create_userr( email,password)
-        user.set_password(password)
+        """
+        creates and saves a superuser with the given email and password
+        """
+        user = self.create_user( email, password=password)
         user.is_admin = True
-        user.save(using=self._db)
-        return user
-
-    def create_client(self, email, name):
-        user = self.model(email=email, name=name)
-        user.is_client=True
-        user.save(using=self._db)
-        return user
-
-    def create_user(self, email):
-        user = self.model(email=email)
         user.save(using=self._db)
         return user
 
