@@ -44,6 +44,7 @@ INSTALLED_APPS = [
 
     # Made by the team
     'users',
+    'catalog',
 ]
 
 REST_FRAMEWORK = {
