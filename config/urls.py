@@ -28,4 +28,6 @@ urlpatterns = [
                   path("api/schema/", SpectacularAPIView.as_view(), name="schema"),  # need to generate swagger-ui
                   path("", SpectacularSwaggerView.as_view(url_name="schema"), name="swagger-ui"),
                   # path("api/schema/redoc/", SpectacularRedocView.as_view(url_name="schema"), name="redoc", ),
-              ] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)  # allows us to access media by url
+]
+urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)  # allows us to access media by url
+urlpatterns += static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)

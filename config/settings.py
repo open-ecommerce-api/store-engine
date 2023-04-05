@@ -11,6 +11,7 @@ https://docs.djangoproject.com/en/4.1/ref/settings/
 """
 
 from pathlib import Path
+from django.core.management.utils import get_random_secret_key
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -19,7 +20,7 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # See https://docs.djangoproject.com/en/4.1/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = 'django-insecure-d*w&ajl492d74u#ba6e)2^45t40jmxc33$dz_y%v+8f325rt=-'
+SECRET_KEY = get_random_secret_key()
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
@@ -66,30 +67,29 @@ REST_FRAMEWORK = {
     # or allow read-only access for unauthenticated users.
 
     'DEFAULT_PERMISSION_CLASSES': [
-        # 'rest_framework.permissions.IsAuthenticated'
-        # 'rest_framework.permissions.DjangoModelPermissionsOrAnonReadOnly'
         "rest_framework.permissions.AllowAny",
     ],
     "DEFAULT_SCHEMA_CLASS": "drf_spectacular.openapi.AutoSchema",
 
-    # 'DEFAULT_PARSER_CLASSES': [
-    # 'rest_framework.parsers.JSONParser',
-    # 'rest_framework.parsers.FormParser',
-    # ] documentation
 }
 
 SPECTACULAR_SETTINGS = {
-    'COMPONENT_SPLIT_REQUEST': True,  # enable POST execute in swagger ui
+
+    # set 'COMPONENT_SPLIT_REQUEST' to 'True' will enable POST execute in swagger ui
+    'COMPONENT_SPLIT_REQUEST': True,
+
     "TITLE": "Django Ecommerce API",
     "DESCRIPTION": "An ecommerce backend-API created using Django and DRF (Django Rest Framework).",
     "VERSION": "0.1.0 Beta",
-    # OTHER SETTINGS
 }
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
-    # 'django.middleware.locale.LocaleMiddleware',  # it takes default language as your browser's language
+
+    # it takes site default language as your browser's language
+    # 'django.middleware.locale.LocaleMiddleware',
+
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
@@ -120,13 +120,22 @@ WSGI_APPLICATION = 'config.wsgi.application'
 # Database
 # https://docs.djangoproject.com/en/4.1/ref/settings/#databases
 
+# DATABASES = {
+#     'default': {
+#         'ENGINE': 'django.db.backends.sqlite3',
+#         'NAME': BASE_DIR / 'db.sqlite3',
+#     }
+# }
+
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql',
-        'NAME': 'django_ecommerce_api',
-        'USER': 'postgres',
+        'NAME': 'open_ecommerce',
+        'USER': 'admin',
         'PASSWORD': 'admin',
-        'HOST': 'localhost',
+        'HOST': 'db',  # used in docker
+        # 'HOST': 'localhost', # used in local
+        'PORT': 5432,
     }
 }
 
@@ -150,14 +159,13 @@ AUTH_PASSWORD_VALIDATORS = [
 
 # Internationalization
 # https://docs.djangoproject.com/en/4.1/topics/i18n/
-
 LANGUAGE_CODE = 'en-us'
-# LANGUAGE_CODE = 'fa'
 
 LANGUAGES = [
-    ('fa', 'Persian'),
     ('en', 'English'),
+    ('fa', 'Persian'),
 ]
+
 # TIME_ZONE = 'UTC'
 TIME_ZONE = 'Asia/Tehran'
 USE_I18N = True
@@ -167,6 +175,7 @@ USE_TZ = True
 # https://docs.djangoproject.com/en/4.1/howto/static-files/
 
 STATIC_URL = 'static/'
+STATIC_ROOT = BASE_DIR / 'static'
 MEDIA_URL = 'media/'
 MEDIA_ROOT = BASE_DIR / 'media'
 
