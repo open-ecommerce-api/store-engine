@@ -1,18 +1,7 @@
-FROM python:latest
-
-ENV PYTHONDONTWRITEBYTECODE 1
-ENV PYTHONUNBUFFERED 1
-
-
-# Install Python dependencied
-WORKDIR /app
-COPY requirements.txt /app/
+FROM python:3.11.2
+ENV PYTHONDONTWRITEBYTECODE=1
+ENV PYTHONUNBUFFERED=1
+WORKDIR /code
+COPY requirements.txt /code/
 RUN pip install -r requirements.txt
-
-COPY . /app
-
-
-
-
-
-
+COPY . /code/
