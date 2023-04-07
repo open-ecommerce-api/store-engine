@@ -44,6 +44,29 @@ class RegisterView(GenericAPIView):
 
         return Response(user_data, status=status.HTTP_201_CREATED)
 
+
+class VerifyEmail(APIView):
+    """
+    An endpoint for  verifies the user's email address
+    """
+    serializer_class = serializers.EmailVerificationSerializer
+    def get(self, request, *args, **kwargs):
+        token = request.POST.get('token')
+        try:
+            token_obj = Token.objects.get(key=token)
+            user = token_obj.user
+            if not user.is_verified:
+                user.is_verified = True
+                user.save()
+                return Response({'email': 'Successfully verified'}, status=status.HTTP_200_OK)
+            else:
+                return Response({'error':'Already verified'}, status=status.HTTP_400_BAD_REQUEST)
+        except Token.DoesNotExist:
+            return Response({'error': 'Invalid verification token'}, status=status.HTTP_400_BAD_REQUEST)
+
+
+
+
      
 class LoginView(GenericAPIView):
     """
