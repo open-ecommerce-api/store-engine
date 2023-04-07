@@ -54,6 +54,16 @@ class UserRegisterationSerializer(serializers.ModelSerializer):
         return user
 
 
+class EmailVerificationSerializer(serializers.Serializer):
+    """
+    Serializer class to verification users with token.
+    """
+    token = serializers.CharField(max_length=20)
+    class Meta:
+        fields = ['token']
+
+
+
 
 class UserLoginSerializer(serializers.Serializer):
     """
