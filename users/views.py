@@ -8,6 +8,9 @@ from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.response import Response
 from rest_framework.authtoken.models import Token
+from django.contrib.sites.shortcuts import get_current_site
+from django.urls import reverse
+from .utils import Util
 
 from . import serializers
 
@@ -25,13 +28,21 @@ class RegisterView(GenericAPIView):
     def post(self, request, *args, **kwargs):
         serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
-        user = serializer.save()
-        if user:
-            token = Token.objects.create(user=user)
-            data = serializer.data
-            data['token'] = token.key
-            return Response(data, status=status.HTTP_201_CREATED)
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        serializer.save()
+        user_data = serializer.data
+        user = User.objects.get(email=user_data['email'])
+        token = Token.objects.create(user=user)
+       
+        current_site = get_current_site(request).domain
+        reletivelink = reverse('verify_email')
+        absurl = 'http://'+current_site +reletivelink+"?token="+str(token)
+        email_body = 'Hi '+user.email + ' please use linke below to verify your email\n'+ absurl
+
+
+        data = {'email_body': email_body,'to_email':user.email, 'email_subject': 'verify your email'}
+        Util.send_email(data)
+
+        return Response(user_data, status=status.HTTP_201_CREATED)
 
      
 class LoginView(GenericAPIView):
