@@ -1,5 +1,5 @@
 <div align="center">
-    <img alt="open-ecommerce-icon" src="https://avatars.githubusercontent.com/u/128040287?s=200&v=4">
+    <img width="750" height="444" alt="open-ecommerce-icon" src="https://user-images.githubusercontent.com/95884253/230699066-21f5fde6-3207-4d27-9d75-53e2bbfd9fe8.png">
 </div>
 
 <div align="center">
