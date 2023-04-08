@@ -1,4 +1,5 @@
-from django.contrib.auth.base_user import BaseUserManager, AbstractBaseUser
+from django.contrib.auth.base_user import BaseUserManager
+from django.contrib.auth.models import AbstractUser
 from django.db import models
 
 
@@ -49,11 +50,20 @@ class UserManager(BaseUserManager):
         """
         extra_fields.setdefault('is_staff', True)
         extra_fields.setdefault('is_superuser', True)
+
+        if extra_fields.get('is_staff') is not True:
+            raise ValueError('Superuser must have `is_staff=True`')
+        if extra_fields.get('is_superuser') is not True:
+            raise ValueError('Superuser must have `is_superuser=True`')
+
         return self.create_user(email, password, **extra_fields)
 
 
-class User(AbstractBaseUser):
+class User(AbstractUser):
     email = models.EmailField(max_length=255, unique=True)
     USERNAME_FIELD = 'email'
 
+    # fix error [users.User: (auth.E002)], so you should remove 'email' from the 'REQUIRED_FIELDS', like this.
+    REQUIRED_FIELDS = []
+    
     objects = UserManager()
