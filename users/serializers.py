@@ -13,6 +13,15 @@ class SigninSerializer(serializers.Serializer):
     password = serializers.CharField(write_only=True)
 
     def validate(self, data):
+        """
+        the `validate()` function is a method that you can define in a serializer to provide custom validation logic for
+        your data. When you call `is_valid()` on a serializer, it runs the `validate()` method if it exists.
+
+        The `validate()` method is called after all the fields have been deserialized and the default validation has
+        been performed. You can use the `validate()` method to perform any additional validation that you need, such as
+        checking if two fields are mutually exclusive or if a certain combination of fields is required.
+        If the data fails validation, you can raise a `serializers.ValidationError` with an appropriate error message.
+        """
         email = data.get('email')
         password = data.get('password')
 

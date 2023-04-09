@@ -22,6 +22,15 @@ class SigninView(GenericAPIView):
         """
 
         serializer = self.serializer_class(data=request.data)
+
+        """
+        When you call `serializer.is_valid()`, the serializer checks whether the data passed into it is valid according 
+        to the serializer's rules. If the data is valid, the method returns `True`, and you can access the validated 
+        data using the `serializer.validated_data` attribute. If the data is not valid, the method returns `False`, 
+        and you can access the errors using the `serializer.errors` attribute. In other words, `serializer.is_valid()`
+        checks whether the data being serialized or deserialized is in the correct format and adheres to any validation
+        rules specified in the serializer.
+        """
         if serializer.is_valid():
             user = serializer.validated_data['user']
             # this line of code will resolve Token error for superuser:
