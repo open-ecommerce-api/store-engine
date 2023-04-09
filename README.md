@@ -21,17 +21,17 @@
 
 ## Table of Contents
 
-- [Project-description](#project-description)
+- [Description](#description)
 - [Technologies](#technologies)
-- [Collaboration-guidelines](#collaboration-guidelines)
+- [Collaboration-guidelines](#contribution-guidelines)
 - [Installation](#installation)
 - [License](#license)
 
-## Project Description
+## Description
 
 ## Technologies
 
-## Collaboration guidelines
+## Contribution guidelines
 
 - Fork this repository
 - Clone your forked repository
