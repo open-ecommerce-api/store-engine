@@ -40,6 +40,7 @@ INSTALLED_APPS = [
     # External Packages
     'rest_framework',
     'drf_spectacular',
+    'rest_framework.authtoken',
 
     # Made by the team
     'users',
