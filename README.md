@@ -6,11 +6,15 @@
   <h1>Django Ecommerce API</h1>
 </div>
 <div align="center">
-        <img alt="licence" src="https://img.shields.io/github/license/open-ecommerce-api/backend?style=plastic" >
-        <img alt="forks" src="https://img.shields.io/github/forks/open-ecommerce-api/backend?style=plastic&color=yellow" >
-        <img alt="open-issues" src="https://img.shields.io/github/issues/open-ecommerce-api/backend?style=plastic&color=blue" >
-        <img alt="pull-requests" src="https://img.shields.io/github/issues-pr/open-ecommerce-api/backend?color=success&style=plastic" >
-        <img alt="stars" src="https://img.shields.io/github/stars/open-ecommerce-api/backend?style=social" >
+        <a href="#"><img alt="licence" src="https://img.shields.io/github/license/open-ecommerce-api/backend?style=plastic" ></a>
+        <a href="#"><img alt="forks" src="https://img.shields.io/github/forks/open-ecommerce-api/backend?style=plastic&color=yellow" ></a>
+        <a href="https://github.com/open-ecommerce-api/backend/issues">
+            <img alt="open-issues" src="https://img.shields.io/github/issues/open-ecommerce-api/backend?style=plastic&color=blue" >
+        </a>
+        <a href="https://github.com/open-ecommerce-api/backend/pulls">
+            <img alt="pull-requests" src="https://img.shields.io/github/issues-pr/open-ecommerce-api/backend?color=success&style=plastic" >
+        </a>
+        <a href="#"><img alt="stars" src="https://img.shields.io/github/stars/open-ecommerce-api/backend?style=social" ></a>
 </div>
 
 <div align="center">
