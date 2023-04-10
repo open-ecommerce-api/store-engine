@@ -1,4 +1,5 @@
-from django.contrib.auth import authenticate
+from django.contrib.auth import authenticate, get_user_model
+from django.db import IntegrityError
 from rest_framework import serializers
 
 
@@ -39,3 +40,37 @@ class SigninSerializer(serializers.Serializer):
 
         # if it's ok, return valid data
         return data
+
+
+class SignupSerializer(serializers.Serializer):
+    """
+    The `SignupSerializer` uses the `EmailField` and `CharField` to validate the email and password fields
+    respectively.
+    The `create` method is used to create a new user with the validated data.
+    """
+
+    email = serializers.EmailField()
+    password = serializers.CharField(min_length=8, write_only=True)
+    confirm_password = serializers.CharField(min_length=8, write_only=True)
+
+    def validate(self, data):
+        password = data.get('password')
+        password_confirm = data.pop('confirm_password')
+
+        if password != password_confirm:
+            raise serializers.ValidationError("Passwords do not match.")
+
+        return data
+
+    def create(self, validated_data):
+
+        try:
+            user = get_user_model().objects.create_user(**validated_data)
+
+            # Deactivate the user until the email is confirmed
+            user.is_active = False
+            
+            user.save()
+            return user
+        except IntegrityError as e:
+            raise serializers.ValidationError({'email': ['This email address is already taken.']})
