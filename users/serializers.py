@@ -1,4 +1,5 @@
 from django.contrib.auth import authenticate, get_user_model
+from django.contrib.auth.password_validation import validate_password
 from django.db import IntegrityError
 from rest_framework import serializers
 
@@ -50,8 +51,8 @@ class SignupSerializer(serializers.Serializer):
     """
 
     email = serializers.EmailField()
-    password = serializers.CharField(min_length=8, write_only=True)
-    confirm_password = serializers.CharField(min_length=8, write_only=True)
+    password = serializers.CharField(write_only=True, validators=[validate_password])
+    confirm_password = serializers.CharField(write_only=True)
 
     def validate(self, data):
         password = data.get('password')
@@ -69,7 +70,7 @@ class SignupSerializer(serializers.Serializer):
 
             # Deactivate the user until the email is confirmed
             user.is_active = False
-            
+
             user.save()
             return user
         except IntegrityError as e:
