@@ -5,4 +5,5 @@ urlpatterns = [
     path('signin/', views.SigninView.as_view(), name='signin'),
     path('signup/', views.SignupView.as_view(), name='signup'),
     path('signup/confirm/<str:token>', views.ConfirmSignupView.as_view(), name='confirm_signup'),
+    path('logout/', views.LogoutView.as_view(), name='logout'),
 ]

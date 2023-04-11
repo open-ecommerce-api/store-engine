@@ -2,6 +2,7 @@ from django.contrib.auth import authenticate, get_user_model
 from django.contrib.auth.password_validation import validate_password
 from django.db import IntegrityError
 from rest_framework import serializers
+from rest_framework.authtoken.models import Token
 
 
 class SigninSerializer(serializers.Serializer):
@@ -75,3 +76,9 @@ class SignupSerializer(serializers.Serializer):
             return user
         except IntegrityError as e:
             raise serializers.ValidationError({'email': ['This email address is already taken.']})
+
+
+class TokenSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Token
+        fields = ('key',)

@@ -1,10 +1,13 @@
+from django.contrib.auth import login
 from django.core.mail import send_mail
 from django.urls import reverse
 from rest_framework import status
+from rest_framework.authentication import TokenAuthentication
 from rest_framework.authtoken.models import Token
 from rest_framework.generics import GenericAPIView, CreateAPIView
-from rest_framework.permissions import AllowAny
+from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.response import Response
+from rest_framework.views import APIView
 
 from config import settings
 from . import serializers
@@ -38,6 +41,10 @@ class SigninView(GenericAPIView):
             user = serializer.validated_data['user']
             # this line of code will resolve Token error for superuser:
             token, _ = Token.objects.get_or_create(user=user)
+
+            # update the `last_login` field in the user table
+            login(request, user)
+
             return Response({'token': token.key}, status=status.HTTP_200_OK)
         else:
             return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
@@ -95,3 +102,35 @@ class ConfirmSignupView(GenericAPIView):
         user.save()
 
         return Response({'message': 'Account activated successfully.'}, status=status.HTTP_200_OK)
+
+
+class LogoutView(APIView):
+    """
+    It is recommended to provide a way for users to log out of an application in a REST API.
+    Logging out terminates the user's session and invalidates their authentication token. This helps to ensure the
+    security of the user's account and data, especially if the user is accessing the application from a public or
+    shared device.
+
+    To access a view that requires authentication, you need to include the authentication credentials in the request
+    headers.
+    One way to do this is to include the token key in the Authorization header of the request.
+
+    For example, to test this endpoint, you should include the token key in the `Authorization` header like this :
+    `Authorization: Token 9944b09199c62bcf9418ad846dd0e4bbdfc6ee4b`
+
+    (In swagger click on lock icon and add value like this: `Token 9944b09199c62bcf9418ad846dd0e4bbdfc6ee4b`)
+    """
+    authentication_classes = [TokenAuthentication]
+    permission_classes = [IsAuthenticated]
+
+    def post(self, request, ):
+        """
+        In the `post` method, we simply delete the token associated with the current user and return a success message.
+        If the user was not authenticated, we return an error message with a `400 status code`.
+        """
+        try:
+            token = request.auth
+            token.delete()
+            return Response({"message": "You have been logged out."}, status=status.HTTP_200_OK)
+        except Exception as e:
+            return Response({"error": str(e)}, status=status.HTTP_400_BAD_REQUEST)
