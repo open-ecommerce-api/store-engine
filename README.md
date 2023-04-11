@@ -47,3 +47,10 @@
 ## Installation
 
 ## License
+
+We decide to use **GPL v3.0 License** (Genu General Public License).
+<br>
+
+#### Explanation
+
+The GNU General Public License is a series of widely used free software licenses that guarantee end users the four freedoms to run, study, share, and modify the software.
