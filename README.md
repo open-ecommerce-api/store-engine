@@ -35,10 +35,10 @@
 
 ## Technologies
 
-- Python 3
-- Django 4
-- DRF (Django Rest Framework)
-- Postgres(Database)
+- Python v3.11.2
+- Django v4.2
+- DRF v3.14 (Django Rest Framework)
+- Postgres v15.2 (Database)
 - Docker
 
 ## Contribution guidelines
