@@ -35,6 +35,12 @@
 
 ## Technologies
 
+- Python 3
+- Django 4
+- DRF (Django Rest Framework)
+- Postgres(Database)
+- Docker
+
 ## Contribution guidelines
 
 - Fork this repository
