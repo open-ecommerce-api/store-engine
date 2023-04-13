@@ -35,6 +35,12 @@
 
 ## Technologies
 
+- Python v3.11.2
+- Django v4.2
+- DRF v3.14 (Django Rest Framework)
+- Postgres v15.2 (Database)
+- Docker
+
 ## Contribution guidelines
 
 - Fork this repository
@@ -47,3 +53,10 @@
 ## Installation
 
 ## License
+
+We decide to use **GPL v3.0 License** (Genu General Public License).
+<br>
+
+#### Explanation
+
+The GNU General Public License is a series of widely used free software licenses that guarantee end users the four freedoms to run, study, share, and modify the software.
