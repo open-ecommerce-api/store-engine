@@ -1,6 +1,8 @@
 from django.contrib.auth import login
 from django.core.mail import send_mail
 from django.urls import reverse
+from django.utils.decorators import method_decorator
+from django.views.decorators.csrf import csrf_protect
 from rest_framework import status
 from rest_framework.authentication import TokenAuthentication
 from rest_framework.authtoken.models import Token
@@ -134,3 +136,46 @@ class LogoutView(APIView):
             return Response({"message": "You have been logged out."}, status=status.HTTP_200_OK)
         except Exception as e:
             return Response({"error": str(e)}, status=status.HTTP_400_BAD_REQUEST)
+
+
+class PasswordResetView(GenericAPIView):
+    serializer_class = serializers.PasswordResetSerializer
+
+    @method_decorator(csrf_protect)
+    def post(self, request):
+        serializer = self.serializer_class(data=request.data)
+        serializer.is_valid(raise_exception=True)
+
+        email = serializer.validated_data['email']
+        user = serializer.validated_data['user']
+
+        # Delete any existing tokens for the user
+        Token.objects.filter(user=user).delete()
+        # Create a new token for the user
+        token = Token.objects.create(user=user)
+
+        # send mail
+        subject = 'Password reset request'
+        password_reset_url = request.build_absolute_uri(reverse('password_reset_confirm', args=[str(token.key)]))
+        message = f'Hi {user.username},' \
+                  f'\n\nYou recently requested to reset your password for your account at {password_reset_url}.'
+        try:
+            send_mail(subject, message, settings.DEFAULT_FROM_EMAIL, [email])
+        except Exception as e:
+            return Response(
+                {'failed': 'Unable to send confirmation email.', 'error': str(e)},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+
+        return Response({'detail': 'Password reset email sent.'}, status=status.HTTP_200_OK)
+
+
+class PasswordResetConfirmView(GenericAPIView):
+    serializer_class = serializers.PasswordResetConfirmSerializer
+
+    def post(self, request, *args, **kwargs):
+        serializer = self.get_serializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        serializer.save()
+
+        return Response({'detail': 'Password has been reset.'}, status=status.HTTP_200_OK)

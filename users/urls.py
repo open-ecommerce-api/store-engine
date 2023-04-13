@@ -6,4 +6,6 @@ urlpatterns = [
     path('signup/', views.SignupView.as_view(), name='signup'),
     path('signup/confirm/<str:token>', views.ConfirmSignupView.as_view(), name='confirm_signup'),
     path('logout/', views.LogoutView.as_view(), name='logout'),
+    path('password_reset/', views.PasswordResetView.as_view(), name='password_reset'),
+    path('password_reset/<str:token>', views.PasswordResetConfirmView.as_view(), name='password_reset_confirm'),
 ]

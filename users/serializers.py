@@ -4,6 +4,8 @@ from django.db import IntegrityError
 from rest_framework import serializers
 from rest_framework.authtoken.models import Token
 
+from users.models import User
+
 
 class SigninSerializer(serializers.Serializer):
     """
@@ -82,3 +84,45 @@ class TokenSerializer(serializers.ModelSerializer):
     class Meta:
         model = Token
         fields = ('key',)
+
+
+class PasswordResetSerializer(serializers.Serializer):
+    email = serializers.EmailField()
+
+    def validate(self, data):
+        if get_user_model().objects.filter(email=data.get('email')).exists():
+            data['user'] = User.objects.get(email=data.get('email'))
+        else:
+            raise serializers.ValidationError("This email address is not associated with any user account.")
+        return data
+
+
+class PasswordResetConfirmSerializer(serializers.Serializer):
+    new_password = serializers.CharField(write_only=True, validators=[validate_password])
+    confirm_new_password = serializers.CharField(write_only=True)
+    token = serializers.CharField(max_length=255, write_only=True)
+
+    def validate(self, data):
+
+        # validate token
+        try:
+            token = Token.objects.get(key=data.get('token'))
+            data['token'] = token
+        except Token.DoesNotExist:
+            raise serializers.ValidationError('Invalid password reset.')
+
+        # validate new password
+        if data.get('new_password') != data.get('confirm_new_password'):
+            raise serializers.ValidationError("Passwords do not match.")
+
+        return data
+
+    def create(self, validated_data):
+        token = validated_data['token']
+        user = token.user
+        user.set_password(validated_data['new_password'])
+        user.save()
+
+        # Delete the token after password reset
+        token.delete()
+        return user
