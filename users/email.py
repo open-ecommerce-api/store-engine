@@ -53,3 +53,13 @@ class SendEmail:
             recipient_list=[user.email],
             message=message,
         )
+
+    @classmethod
+    def send_change_password(cls, user):
+        message = f'Hi {user.username}, your password has been changed successfully.'
+        cls.send(
+            subject='Password changed',
+            from_email=settings.DEFAULT_FROM_EMAIL,
+            recipient_list=[user.email],
+            message=message,
+        )

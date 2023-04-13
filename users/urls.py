@@ -8,4 +8,5 @@ urlpatterns = [
     path('logout/', views.LogoutView.as_view(), name='logout'),
     path('password_reset/', views.PasswordResetView.as_view(), name='password_reset'),
     path('password_reset/<str:token>', views.PasswordResetConfirmView.as_view(), name='password_reset_confirm'),
+    path('change_password/', views.ChangePasswordView.as_view(), name='change_password'),
 ]

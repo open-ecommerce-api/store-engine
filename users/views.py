@@ -153,3 +153,21 @@ class PasswordResetConfirmView(GenericAPIView):
         serializer.save()
 
         return Response({'detail': 'Password has been reset.'}, status=status.HTTP_200_OK)
+
+
+class ChangePasswordView(GenericAPIView):
+    serializer_class = serializers.ChangePasswordSerializer
+    permission_classes = (IsAuthenticated,)
+
+    @method_decorator(csrf_protect)
+    def post(self, request):
+        user = request.user
+        serializer = self.serializer_class(data=request.data, context={'user': user})
+        serializer.is_valid(raise_exception=True)
+        user.set_password(serializer.validated_data)
+        user.save()
+
+        # send mail
+        email.SendEmail.send_change_password(user)
+
+        return Response({'detail': 'Password changed successfully'}, status=status.HTTP_200_OK)

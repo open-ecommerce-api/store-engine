@@ -1,4 +1,5 @@
 from django.contrib.auth import authenticate, get_user_model
+from django.contrib.auth.hashers import check_password
 from django.contrib.auth.password_validation import validate_password
 from django.db import IntegrityError
 from rest_framework import serializers
@@ -126,3 +127,26 @@ class PasswordResetConfirmSerializer(serializers.Serializer):
         # Delete the token after password reset
         token.delete()
         return user
+
+
+class ChangePasswordSerializer(serializers.Serializer):
+    old_password = serializers.CharField(write_only=True)
+    new_password = serializers.CharField(write_only=True, validators=[validate_password])
+    confirm_new_password = serializers.CharField(write_only=True)
+
+    def validate(self, data):
+        user = self.context['user']
+
+        # check old password
+        if not check_password(data.get('old_password'), user.password):
+            raise serializers.ValidationError('Invalid password')
+
+        # new password should not be the same as old password
+        if check_password(data.get('new_password'), user.password):
+            raise serializers.ValidationError('New password must be different from old password')
+
+        # validate new password
+        if data['new_password'] != data['confirm_new_password']:
+            raise serializers.ValidationError("The new password and confirmation do not match.")
+
+        return data.get('new_password')
