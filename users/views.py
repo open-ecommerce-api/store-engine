@@ -171,3 +171,20 @@ class ChangePasswordView(GenericAPIView):
         email.SendEmail.send_change_password(user)
 
         return Response({'detail': 'Password changed successfully'}, status=status.HTTP_200_OK)
+
+
+class ChangeEmailView(APIView):
+    serializer_class = serializers.ChangeEmailSerializer
+    permission_classes = [IsAuthenticated]
+
+    def post(self, request):
+        user = request.user
+        serializer = self.serializer_class(data=request.data, context={'user': user})
+        serializer.is_valid(raise_exception=True)
+        user.email = serializer.validated_data
+        user.save()
+
+        # send email
+        email.SendEmail.send_change_email(user.email)
+
+        return Response({'detail': 'Email changed successfully'}, status=status.HTTP_200_OK)

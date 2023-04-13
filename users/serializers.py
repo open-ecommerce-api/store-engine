@@ -150,3 +150,21 @@ class ChangePasswordSerializer(serializers.Serializer):
             raise serializers.ValidationError("The new password and confirmation do not match.")
 
         return data.get('new_password')
+
+
+class ChangeEmailSerializer(serializers.Serializer):
+    email = serializers.EmailField(write_only=True)
+    password = serializers.CharField(write_only=True)
+
+    def validate(self, data):
+        user = self.context['user']
+
+        # check password
+        if not user.check_password(data.get('password')):
+            raise serializers.ValidationError('Invalid password')
+
+        # check email uniqueness
+        if User.objects.filter(email=data.get('email')).exists():
+            raise serializers.ValidationError('Email already in use')
+
+        return data.get('email')

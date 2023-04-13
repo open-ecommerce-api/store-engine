@@ -63,3 +63,12 @@ class SendEmail:
             recipient_list=[user.email],
             message=message,
         )
+
+    @classmethod
+    def send_change_email(cls, new_email):
+        cls.send(
+            subject="Email Change Confirmation",
+            from_email=settings.DEFAULT_FROM_EMAIL,
+            recipient_list=[new_email],
+            message=f"Your email has been changed to {new_email}.",
+        )
