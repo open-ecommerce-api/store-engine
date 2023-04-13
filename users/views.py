@@ -1,6 +1,4 @@
 from django.contrib.auth import login
-from django.core.mail import send_mail
-from django.urls import reverse
 from django.utils.decorators import method_decorator
 from django.views.decorators.csrf import csrf_protect
 from rest_framework import status
@@ -12,7 +10,7 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 
 from config import settings
-from . import serializers
+from . import serializers, email
 
 
 class SigninView(GenericAPIView):
@@ -65,21 +63,8 @@ class SignupView(CreateAPIView):
             # Generate a unique token for the user
             token = Token.objects.get_or_create(user=user)
 
-            # `reverse()` is used to generate the URL for the confirm_signup view
-            confirm_url = request.build_absolute_uri(reverse('confirm_signup', args=[str(token[0])]))
-
             # Send confirmation email
-            subject = 'Confirm your email address'
-            message = f'Hi {user.email}, please click the link below to confirm your account:\n{confirm_url}'
-            from_email = settings.DEFAULT_FROM_EMAIL
-
-            try:
-                send_mail(subject, message, from_email, [user.email], fail_silently=False)
-            except Exception as e:
-                return Response(
-                    {'failed': 'Unable to send confirmation email.', 'error': str(e)},
-                    status=status.HTTP_400_BAD_REQUEST
-                )
+            email.SendEmail.send_signup_confirmation(request, user, token)
 
             return Response(
                 {'Confirm email': 'Please check your email to confirm your address'},
@@ -146,7 +131,6 @@ class PasswordResetView(GenericAPIView):
         serializer = self.serializer_class(data=request.data)
         serializer.is_valid(raise_exception=True)
 
-        email = serializer.validated_data['email']
         user = serializer.validated_data['user']
 
         # Delete any existing tokens for the user
@@ -154,18 +138,8 @@ class PasswordResetView(GenericAPIView):
         # Create a new token for the user
         token = Token.objects.create(user=user)
 
-        # send mail
-        subject = 'Password reset request'
-        password_reset_url = request.build_absolute_uri(reverse('password_reset_confirm', args=[str(token.key)]))
-        message = f'Hi {user.username},' \
-                  f'\n\nYou recently requested to reset your password for your account at {password_reset_url}.'
-        try:
-            send_mail(subject, message, settings.DEFAULT_FROM_EMAIL, [email])
-        except Exception as e:
-            return Response(
-                {'failed': 'Unable to send confirmation email.', 'error': str(e)},
-                status=status.HTTP_400_BAD_REQUEST
-            )
+        # Send password reset email
+        email.SendEmail.send_password_reset(request, user, token)
 
         return Response({'detail': 'Password reset email sent.'}, status=status.HTTP_200_OK)
 
