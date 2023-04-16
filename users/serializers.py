@@ -71,10 +71,6 @@ class SignupSerializer(serializers.Serializer):
 
         try:
             user = get_user_model().objects.create_user(**validated_data)
-
-            # Deactivate the user until the email is confirmed
-            user.is_active = False
-
             user.save()
             return user
         except IntegrityError as e:

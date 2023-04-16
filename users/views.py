@@ -57,8 +57,8 @@ class SignupView(CreateAPIView):
         serializer = self.get_serializer(data=request.data)
         if serializer.is_valid():
 
-            # Create the user object
-            user = serializer.save()
+            # create a new user and deactivate the user until the email is confirmed
+            user = serializer.save(is_active=False)
 
             # Generate a unique token for the user
             token = Token.objects.get_or_create(user=user)
