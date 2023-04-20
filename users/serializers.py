@@ -97,14 +97,12 @@ class PasswordResetSerializer(serializers.Serializer):
 class PasswordResetConfirmSerializer(serializers.Serializer):
     new_password = serializers.CharField(write_only=True, validators=[validate_password])
     confirm_new_password = serializers.CharField(write_only=True)
-    token = serializers.CharField(max_length=255, write_only=True)
 
     def validate(self, data):
 
         # validate token
         try:
-            token = Token.objects.get(key=data.get('token'))
-            data['token'] = token
+            data['token'] = Token.objects.get(key=self.context['token'])
         except Token.DoesNotExist:
             raise serializers.ValidationError('Invalid password reset.')
 

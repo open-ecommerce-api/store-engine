@@ -1,6 +1,4 @@
 from django.contrib.auth import login
-from django.utils.decorators import method_decorator
-from django.views.decorators.csrf import csrf_protect
 from rest_framework import status
 from rest_framework.authentication import TokenAuthentication
 from rest_framework.authtoken.models import Token
@@ -126,7 +124,6 @@ class LogoutView(APIView):
 class PasswordResetView(GenericAPIView):
     serializer_class = serializers.PasswordResetSerializer
 
-    @method_decorator(csrf_protect)
     def post(self, request):
         serializer = self.serializer_class(data=request.data)
         serializer.is_valid(raise_exception=True)
@@ -148,7 +145,7 @@ class PasswordResetConfirmView(GenericAPIView):
     serializer_class = serializers.PasswordResetConfirmSerializer
 
     def post(self, request, *args, **kwargs):
-        serializer = self.get_serializer(data=request.data)
+        serializer = self.get_serializer(data=request.data, context={'token': kwargs.get('token')})
         serializer.is_valid(raise_exception=True)
         serializer.save()
 
@@ -159,7 +156,6 @@ class ChangePasswordView(GenericAPIView):
     serializer_class = serializers.ChangePasswordSerializer
     permission_classes = (IsAuthenticated,)
 
-    @method_decorator(csrf_protect)
     def post(self, request):
         user = request.user
         serializer = self.serializer_class(data=request.data, context={'user': user})
