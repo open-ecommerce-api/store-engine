@@ -40,6 +40,7 @@ INSTALLED_APPS = [
     # External Packages
     'rest_framework',
     'drf_spectacular',
+    'rest_framework.authtoken',
 
     # Made by the team
     'users',
@@ -53,7 +54,11 @@ REST_FRAMEWORK = {
         "rest_framework.permissions.AllowAny",
     ],
     "DEFAULT_SCHEMA_CLASS": "drf_spectacular.openapi.AutoSchema",
-
+    'DEFAULT_AUTHENTICATION_CLASSES': [
+        'rest_framework.authentication.BasicAuthentication',
+        'rest_framework.authentication.SessionAuthentication',
+        'rest_framework.authentication.TokenAuthentication',
+    ],
 }
 
 SPECTACULAR_SETTINGS = {
@@ -167,4 +172,6 @@ MEDIA_ROOT = BASE_DIR / 'media'
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
-AUTH_USER_MODEL = 'users.CustomUser'
+AUTH_USER_MODEL = 'users.User'
+DEFAULT_FROM_EMAIL = 'noreply@pysell.ir'
+EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
