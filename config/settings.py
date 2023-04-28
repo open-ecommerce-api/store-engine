@@ -40,6 +40,7 @@ INSTALLED_APPS = [
     # External Packages
     'rest_framework',
     'drf_spectacular',
+    'rest_framework.authtoken',
 
     # Made by the team
     'users',
@@ -50,30 +51,32 @@ REST_FRAMEWORK = {
     # or allow read-only access for unauthenticated users.
 
     'DEFAULT_PERMISSION_CLASSES': [
-        # 'rest_framework.permissions.IsAuthenticated'
-        # 'rest_framework.permissions.DjangoModelPermissionsOrAnonReadOnly'
         "rest_framework.permissions.AllowAny",
     ],
     "DEFAULT_SCHEMA_CLASS": "drf_spectacular.openapi.AutoSchema",
-
-    # 'DEFAULT_PARSER_CLASSES': [
-    # 'rest_framework.parsers.JSONParser',
-    # 'rest_framework.parsers.FormParser',
-    # ] documentation
+    'DEFAULT_AUTHENTICATION_CLASSES': [
+        'rest_framework.authentication.SessionAuthentication',
+        'rest_framework.authentication.TokenAuthentication',
+    ],
 }
 
 SPECTACULAR_SETTINGS = {
-    'COMPONENT_SPLIT_REQUEST': True,  # enable POST execute in swagger ui
+
+    # set 'COMPONENT_SPLIT_REQUEST' to 'True' will enable POST execute in swagger ui
+    'COMPONENT_SPLIT_REQUEST': True,
+
     "TITLE": "Django Ecommerce API",
     "DESCRIPTION": "An ecommerce backend-API created using Django and DRF (Django Rest Framework).",
     "VERSION": "0.1.0 Beta",
-    # OTHER SETTINGS
 }
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
-    # 'django.middleware.locale.LocaleMiddleware',  # it takes default language as your browser's language
+
+    # it takes site default language as your browser's language
+    # 'django.middleware.locale.LocaleMiddleware',
+
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
@@ -104,22 +107,24 @@ WSGI_APPLICATION = 'config.wsgi.application'
 # Database
 # https://docs.djangoproject.com/en/4.1/ref/settings/#databases
 
-DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / 'db.sqlite3',
-    }
-}
-
 # DATABASES = {
 #     'default': {
-#         'ENGINE': 'django.db.backends.postgresql',
-#         'NAME': 'django_ecommerce_api',
-#         'USER': 'postgres',
-#         'PASSWORD': 'admin',
-#         'HOST': 'localhost',
+#         'ENGINE': 'django.db.backends.sqlite3',
+#         'NAME': BASE_DIR / 'db.sqlite3',
 #     }
 # }
+
+DATABASES = {
+    'default': {
+        'ENGINE': 'django.db.backends.postgresql',
+        'NAME': 'postgres',
+        'USER': 'postgres',
+        'PASSWORD': 'admin',
+        'HOST': 'db',  # used in docker
+        # 'HOST': 'localhost', # used in local
+        'PORT': 5432,
+    }
+}
 
 # Password validation
 # https://docs.djangoproject.com/en/4.1/ref/settings/#auth-password-validators
@@ -141,14 +146,13 @@ AUTH_PASSWORD_VALIDATORS = [
 
 # Internationalization
 # https://docs.djangoproject.com/en/4.1/topics/i18n/
-
 LANGUAGE_CODE = 'en-us'
-# LANGUAGE_CODE = 'fa'
 
 LANGUAGES = [
-    ('fa', 'Persian'),
     ('en', 'English'),
+    ('fa', 'Persian'),
 ]
+
 # TIME_ZONE = 'UTC'
 TIME_ZONE = 'Asia/Tehran'
 USE_I18N = True
@@ -167,4 +171,6 @@ MEDIA_ROOT = BASE_DIR / 'media'
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
-AUTH_USER_MODEL = 'users.CustomUser'
+AUTH_USER_MODEL = 'users.User'
+DEFAULT_FROM_EMAIL = 'noreply@pysell.ir'
+EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
