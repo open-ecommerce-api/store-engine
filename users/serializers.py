@@ -34,10 +34,7 @@ class SigninSerializer(serializers.Serializer):
         if email and password:
             user = authenticate(username=email, password=password)
             if user:
-                if user.is_active:
                     data['user'] = user
-                else:
-                    raise serializers.ValidationError('User is inactive.')
             else:
                 raise serializers.ValidationError('Unable to log in with provided credentials.')
         else:
