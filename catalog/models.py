@@ -13,13 +13,26 @@ class Product(models.Model):
 
 
 class Variant(models.Model):
-    product = models.ForeignKey(Product, on_delete=models.CASCADE)
     name = models.CharField(max_length=255)
+
+    def __str__(self):
+        return self.name
 
 
 class VariantItem(models.Model):
-    variant = models.ForeignKey(Variant, on_delete=models.CASCADE)
-    name = models.CharField(max_length=255)
+    variant = models.ForeignKey(
+        Variant,
+        on_delete=models.CASCADE,
+        related_name='variant_items',
+        verbose_name='variant_verbose'
+    )
+    item_name = models.CharField(max_length=100)
+
+    class Meta:
+        unique_together = ('variant', 'item_name')
+
+    def __str__(self):
+        return self.item_name
 
 
 class Category(models.Model):
@@ -35,9 +48,8 @@ class ProductMedia(models.Model):
 class ProductVariant(models.Model):
     product = models.ForeignKey(Product, on_delete=models.CASCADE)
     variant = models.ForeignKey(Variant, on_delete=models.CASCADE)
+    name = models.CharField(max_length=255)
     price = models.DecimalField(max_digits=12, decimal_places=2)
     stock = models.IntegerField(default=0)
-
-    # sku = models.CharField(max_length=255, unique=True)
-    # name = models.CharField(max_length=255)
-    # track_inventory = models.BooleanField(default=True)
+    track_inventory = models.BooleanField(default=True)
+    sku = models.CharField(max_length=255, unique=True)
