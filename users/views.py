@@ -1,13 +1,13 @@
 from django.contrib.auth import login
+from django.contrib.auth import logout
 from rest_framework import status
-from rest_framework.authentication import TokenAuthentication
 from rest_framework.authtoken.models import Token
 from rest_framework.generics import GenericAPIView, CreateAPIView
 from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
-from config import settings
+
 from . import serializers, email
 
 
@@ -105,17 +105,19 @@ class LogoutView(APIView):
 
     (In swagger click on lock icon and add value like this: `Token 9944b09199c62bcf9418ad846dd0e4bbdfc6ee4b`)
     """
-    authentication_classes = [TokenAuthentication]
     permission_classes = [IsAuthenticated]
 
-    def post(self, request, ):
+    def post(self, request):
         """
         In the `post` method, we simply delete the token associated with the current user and return a success message.
         If the user was not authenticated, we return an error message with a `400 status code`.
         """
         try:
-            token = request.auth
-            token.delete()
+            Token.objects.filter(user=request.user).delete()
+
+            # Logout from sessions
+            logout(request)
+
             return Response({"message": "You have been logged out."}, status=status.HTTP_200_OK)
         except Exception as e:
             return Response({"error": str(e)}, status=status.HTTP_400_BAD_REQUEST)
