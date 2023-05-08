@@ -65,10 +65,10 @@ class SendEmail:
         )
 
     @classmethod
-    def send_change_email(cls, new_email):
+    def send_change_email(cls, new_email, otp):
         cls.send(
             subject="Email Change Confirmation",
             from_email=settings.DEFAULT_FROM_EMAIL,
             recipient_list=[new_email],
-            message=f"Your email has been changed to {new_email}.",
+            message=f'Your OTP to change your email address is {otp}',
         )
