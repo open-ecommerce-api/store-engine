@@ -144,18 +144,23 @@ class ChangePasswordSerializer(serializers.Serializer):
 
 
 class ChangeEmailSerializer(serializers.Serializer):
-    email = serializers.EmailField(write_only=True)
+    new_email = serializers.EmailField(write_only=True)
     password = serializers.CharField(write_only=True)
 
     def validate(self, data):
         user = self.context['user']
+        new_email = data.get('new_email')
+        otp = data.get('otp')
 
         # check password
         if not user.check_password(data.get('password')):
             raise serializers.ValidationError('Invalid password')
 
         # check email uniqueness
-        if User.objects.filter(email=data.get('email')).exists():
-            raise serializers.ValidationError('Email already in use')
+        if User.objects.filter(email=new_email).exclude(id=user.id).exists():
+            raise serializers.ValidationError('This email address is already in use')
+        user.otp = otp
+        user.new_email = new_email
+        user.save()
 
-        return data.get('email')
+        return data
