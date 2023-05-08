@@ -6,6 +6,8 @@ from .managers import UserManager
 class User(AbstractUser):
     email = models.EmailField(max_length=255, unique=True)
     username = models.CharField(max_length=255, blank=False, null=False)
+    otp = models.CharField(max_length=6, null=True, blank=True)
+    new_email = models.EmailField(blank=True)
     USERNAME_FIELD = 'email'
 
     # fix error [users.User: (auth.E002)], so you should remove 'email' from the 'REQUIRED_FIELDS', like this.
