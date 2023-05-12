@@ -1,4 +1,4 @@
-import random
+import secrets
 from django.contrib.auth import login
 from django.contrib.auth import logout
 from rest_framework import status
@@ -182,7 +182,7 @@ class ChangeEmailView(APIView):
         serializer.is_valid(raise_exception=True)
         # Set new_email and otp fields on user object
         user.new_email = serializer.validated_data['new_email']
-        user.otp = str(random.randint(100000, 999999))
+        user.otp = secrets.randbelow(1000000)  # generates a 6-digit OTP
         user.save()
 
         # send email
@@ -194,18 +194,10 @@ class ChangeEmailView(APIView):
 
 
 class ChangeEmailConfirmView(APIView):
+    serializer_class = serializers.ChangeEmailConfirmSerializer
+    permission_classes = [IsAuthenticated]
+
     def post(self, request):
-        user = request.user
-        otp = request.data.get('otp', None)
-
-        if not otp:
-            raise AuthenticationFailed('OTP is required')
-
-        if user.otp != otp:
-            raise AuthenticationFailed('Invalid OTP')
-
-        # Update the user's email address with the new email address
-        user.email = user.new_email
-        user.save()
-
+        serializer = self.serializer_class(data=request.data, context={'user': request.user})
+        serializer.is_valid(raise_exception=True)
         return Response({'detail': 'Email address has been changed successfully'})
