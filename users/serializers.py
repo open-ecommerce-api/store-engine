@@ -34,7 +34,7 @@ class SigninSerializer(serializers.Serializer):
         if email and password:
             user = authenticate(username=email, password=password)
             if user:
-                    data['user'] = user
+                data['user'] = user
             else:
                 raise serializers.ValidationError('Unable to log in with provided credentials.')
         else:
@@ -161,6 +161,24 @@ class ChangeEmailSerializer(serializers.Serializer):
             raise serializers.ValidationError('This email address is already in use')
         user.otp = otp
         user.new_email = new_email
+        user.save()
+
+        return data
+
+
+class ChangeEmailConfirmSerializer(serializers.Serializer):
+    otp = serializers.IntegerField(write_only=True)
+
+    def validate(self, data):
+        user = self.context['user']
+        otp = data.get('otp')
+
+        if not otp:
+            raise serializers.ValidationError('OTP is required')
+
+        if user.otp != otp:
+            raise serializers.ValidationError('Invalid OTP')
+        user.email = user.new_email
         user.save()
 
         return data
