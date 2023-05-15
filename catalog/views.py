@@ -1,4 +1,5 @@
 from django.shortcuts import get_object_or_404
+from drf_spectacular.utils import extend_schema, extend_schema_view
 from rest_framework import viewsets, status
 from rest_framework.decorators import action
 from rest_framework.permissions import IsAdminUser
@@ -8,6 +9,38 @@ from .models import Variant, VariantItem
 from .serializers import VariantSerializer, VariantItemSerializer, VariantItemUpdateSerializer
 
 
+@extend_schema_view(
+    create=extend_schema(
+        tags=["Catalog - Variant"],
+        summary='Create a new variant',
+        description='Create a new variant.',
+    ),
+    retrieve=extend_schema(
+        tags=["Catalog - Variant"],
+        summary='Retrieve a variant',
+        description='Retrieve a single variant by `id`.',
+    ),
+    update=extend_schema(
+        tags=["Catalog - Variant"],
+        summary='Update a variant',
+        description="Update a variant's name.",
+    ),
+    destroy=extend_schema(
+        tags=["Catalog - Variant"],
+        summary='Delete a variant',
+        description='Delete a variant.',
+    ),
+    list=extend_schema(
+        tags=["Catalog - Variant"],
+        summary='Retrieve a list of variants',
+        description='Retrieve a list of variants.',
+    ),
+    get_items_for_variant=extend_schema(
+        tags=["Catalog - Variant"],
+        summary='Retrieve all items of a variant',
+        description='Retrieve all items of a variant.',
+    )
+)
 class VariantViewSet(viewsets.ModelViewSet):
     queryset = Variant.objects.all()
     serializer_class = VariantSerializer
@@ -28,20 +61,44 @@ class VariantViewSet(viewsets.ModelViewSet):
             return Response(serializer.data)
         return Response(status=status.HTTP_204_NO_CONTENT)
 
-    # This is a temporary comment;
-    # I override this method just to show how adding api documentation in `ViewSet`:
-    # https://drf-spectacular.readthedocs.io/en/latest/readme.html#customization-by-using-extend-schema
 
-    # @extend_schema(request=VariantSerializer, responses={201: VariantSerializer})
-    # def create(self, request, *args, **kwargs):
-    #     """
-    #     Create a new variant.
-    #
-    #     Returns the created variant.
-    #     """
-    #     return super().create(request, *args, **kwargs)
-
-
+@extend_schema_view(
+    create=extend_schema(
+        tags=["Catalog - Variant"],
+        summary='Create a new item',
+        description='Create a new item for a variant.',
+    ),
+    retrieve=extend_schema(
+        tags=["Catalog - Variant"],
+        summary='Retrieve an item',
+        description='Retrieve a single item.',
+    ),
+    update=extend_schema(
+        tags=["Catalog - Variant"],
+        summary='Update an item',
+        description="Update an item's name.",
+    ),
+    destroy=extend_schema(
+        tags=["Catalog - Variant"],
+        summary='Delete an item',
+        description='Delete a single item in a variant.',
+    ),
+    list=extend_schema(
+        tags=["Catalog - Variant"],
+        summary='Retrieve all items',
+        description='Retrieve all items in any variant.',
+    ),
+    create_variant_items=extend_schema(
+        tags=["Catalog - Variant"],
+        summary='Create multi items',
+        description='Create multi items for a variant.',
+    ),
+    delete_variant_items=extend_schema(
+        tags=["Catalog - Variant"],
+        summary='Delete Multi Items',
+        description='Delete multi items form a variant.',
+    )
+)
 class VariantItemViewSet(viewsets.ModelViewSet):
     queryset = VariantItem.objects.all()
     serializer_class = VariantItemSerializer
