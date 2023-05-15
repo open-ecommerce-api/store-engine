@@ -56,19 +56,21 @@ REST_FRAMEWORK = {
     ],
     "DEFAULT_SCHEMA_CLASS": "drf_spectacular.openapi.AutoSchema",
     'DEFAULT_AUTHENTICATION_CLASSES': [
-        'rest_framework.authentication.SessionAuthentication',
         'rest_framework.authentication.TokenAuthentication',
+        'rest_framework.authentication.SessionAuthentication',
     ],
 }
 
 SPECTACULAR_SETTINGS = {
-
-    # set 'COMPONENT_SPLIT_REQUEST' to 'True' will enable POST execute in swagger ui
-    'COMPONENT_SPLIT_REQUEST': True,
-
-    "TITLE": "Django Ecommerce API",
+    "TITLE": "Store Engine API",
     "DESCRIPTION": "An ecommerce backend-API created using Django and DRF (Django Rest Framework).",
-    "VERSION": "0.1.0 Beta",
+    "VERSION": "0.1.0",
+
+    # hide `/api/schema/` in swagger UI
+    'SERVE_INCLUDE_SCHEMA': False,
+
+    # enable POST execute in swagger ui
+    'COMPONENT_SPLIT_REQUEST': True,
 }
 
 MIDDLEWARE = [
