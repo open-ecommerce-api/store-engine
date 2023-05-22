@@ -8,4 +8,5 @@ router.register(r'variant-items', VariantItemViewSet)
 
 urlpatterns = [
     path('', include(router.urls)),
+    # path('multi-items/', VariantMultiItemView.as_view(), name='create_variant_items'),
 ]
