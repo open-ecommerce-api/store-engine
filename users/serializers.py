@@ -74,6 +74,25 @@ class SignupSerializer(serializers.Serializer):
             raise serializers.ValidationError({'email': ['This email address is already taken.']})
 
 
+class EmailConfirmSerializer(serializers.Serializer):
+    otp = serializers.IntegerField(write_only=True)
+
+    def validate(self, data):
+        user = self.context['user']
+        otp = data.get('otp')
+
+        if not otp:
+            raise serializers.ValidationError('OTP is required')
+
+        if user.otp != otp:
+            raise serializers.ValidationError('Invalid OTP')
+        # Activate the user, email is confirmed
+        user.is_active = True
+        user.save()
+
+        return data
+
+
 class TokenSerializer(serializers.ModelSerializer):
     class Meta:
         model = Token
