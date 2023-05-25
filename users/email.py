@@ -26,12 +26,9 @@ class SendEmail:
             raise Exception(f'Failed to send email: {str(e)}')
 
     @classmethod
-    def send_signup_confirmation(cls, request, user, token):
+    def send_signup_confirmation(cls, request, user, otp, token):
 
-        # Generate the URL for the confirmation link
-        confirm_url = request.build_absolute_uri(reverse('confirm_signup', args=[str(token[0])]))
-
-        message = f'Hi {user.email}, please click the link below to confirm your account:\n{confirm_url}'
+        message = f'Hi {user.email}, please confirm your account: {otp}\n{token[0]}'
         cls.send(
             subject='Confirm your email address',
             from_email=settings.DEFAULT_FROM_EMAIL,
