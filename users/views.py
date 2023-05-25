@@ -62,8 +62,10 @@ class SignupView(CreateAPIView):
             # Generate a unique token for the user
             token = Token.objects.get_or_create(user=user)
 
+            user.otp = secrets.randbelow(1000000)  # generates a 6-digit OTP
+
             # Send confirmation email
-            email.SendEmail.send_signup_confirmation(request, user, token)
+            email.SendEmail.send_signup_confirmation(request, user, user.otp, token)
 
             return Response(
                 {'Confirm email': 'Please check your email to confirm your address'},
@@ -74,19 +76,12 @@ class SignupView(CreateAPIView):
 
 
 class ConfirmSignupView(GenericAPIView):
-    def get(self, request, token):
-        try:
-            user = Token.objects.get(key=token).user
-        except Token.DoesNotExist:
-            return Response({'message': 'Invalid token.'}, status=status.HTTP_400_BAD_REQUEST)
+    serializer_class = serializers.EmailConfirmSerializer
+    permission_classes = [IsAuthenticated]
 
-        if user.is_active:
-            return Response({'message': 'Account already activated.'}, status=status.HTTP_400_BAD_REQUEST)
-
-        # Activate the user, email is confirmed
-        user.is_active = True
-        user.save()
-
+    def post(self, request):
+        serializer = self.serializer_class(data=request.data, context={'user': request.user})
+        serializer.is_valid(raise_exception=True)
         return Response({'message': 'Account activated successfully.'}, status=status.HTTP_200_OK)
 
 
