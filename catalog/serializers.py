@@ -1,20 +1,20 @@
 from rest_framework import serializers
-from .models import Variant, VariantItem
+from .models import ProductOption, ProductOptionValue, Product
 
 
-class VariantSerializer(serializers.ModelSerializer):
+class ProductOptionSerializer(serializers.ModelSerializer):
     class Meta:
-        model = Variant
+        model = ProductOption
         fields = '__all__'
 
 
-class VariantItemSerializer(serializers.ModelSerializer):
-    item_name = serializers.CharField()
-    variant_id = serializers.PrimaryKeyRelatedField(queryset=Variant.objects.all(), source='variant')
+class ProductOptionValueSerializer(serializers.ModelSerializer):
+    value = serializers.CharField()
+    option_id = serializers.PrimaryKeyRelatedField(queryset=ProductOption.objects.all(), source='option')
 
     class Meta:
-        model = VariantItem
-        fields = ['id', 'item_name', 'variant_id']
+        model = ProductOptionValue
+        fields = ['id', 'value', 'option_id']
 
 
 class ListField(serializers.ListField):
@@ -27,35 +27,41 @@ class ListField(serializers.ListField):
         raise serializers.ValidationError('Invalid input type: expected a list.')
 
 
-class VariantMultiItemSerializer(serializers.ModelSerializer):
-    items = serializers.ListField(child=serializers.CharField())
-    variant_id = serializers.IntegerField()
+class OptionMultiValueSerializer(serializers.ModelSerializer):
+    values = serializers.ListField(child=serializers.CharField())
+    option_id = serializers.IntegerField()
 
     class Meta:
-        model = VariantItem
-        fields = ['id', 'items', 'variant_id']
+        model = ProductOptionValue
+        fields = ['id', 'values', 'option_id']
 
     def validate(self, attrs):
-        variant_id = attrs.get('variant_id')
-        items = attrs.get('items')
-        if not variant_id:
-            raise serializers.ValidationError('Variant ID is required')
+        option_id = attrs.get('option_id')
+        values = attrs.get('values')
+        if not option_id:
+            raise serializers.ValidationError('Option ID is required')
         try:
-            Variant.objects.get(id=variant_id)
-        except Variant.DoesNotExist:
-            raise serializers.ValidationError('Variant does not exist')
-        if items is None:
-            raise serializers.ValidationError('Items is required')
+            ProductOption.objects.get(id=option_id)
+        except ProductOption.DoesNotExist:
+            raise serializers.ValidationError('Option does not exist')
+        if values is None:
+            raise serializers.ValidationError('Values is required')
         return attrs
 
 
-class VariantItemUpdateSerializer(serializers.ModelSerializer):
-    item_name = serializers.CharField()
+class OptionValueUpdateSerializer(serializers.ModelSerializer):
+    value = serializers.CharField()
 
     class Meta:
-        model = VariantItem
-        fields = ['id', 'item_name']
+        model = ProductOptionValue
+        fields = ['id', 'value']
 
 
-class DeleteVariantItemsSerializer(serializers.Serializer):
-    item_ids = serializers.ListField(child=serializers.IntegerField())
+class OptionValueDeleteSerializer(serializers.Serializer):
+    value_ids = serializers.ListField(child=serializers.IntegerField())
+
+
+class ProductSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Product
+        fields = '__all__'
