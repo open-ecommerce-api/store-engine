@@ -57,7 +57,6 @@ REST_FRAMEWORK = {
     "DEFAULT_SCHEMA_CLASS": "drf_spectacular.openapi.AutoSchema",
     'DEFAULT_AUTHENTICATION_CLASSES': [
         'rest_framework.authentication.TokenAuthentication',
-        'rest_framework.authentication.SessionAuthentication',
     ],
 }
 
@@ -70,7 +69,7 @@ SPECTACULAR_SETTINGS = {
     'SERVE_INCLUDE_SCHEMA': False,
 
     # enable POST execute in swagger ui
-    'COMPONENT_SPLIT_REQUEST': True,
+    # 'COMPONENT_SPLIT_REQUEST': True,
 }
 
 MIDDLEWARE = [
@@ -124,7 +123,7 @@ DATABASES = {
         'USER': 'postgres',
         'PASSWORD': 'admin',
         'HOST': 'db',  # used in docker
-        # 'HOST': 'localhost', # used in local
+        # 'HOST': 'localhost',  # used in local
         'PORT': 5432,
     }
 }
