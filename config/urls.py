@@ -22,12 +22,8 @@ from drf_spectacular.views import SpectacularAPIView, SpectacularSwaggerView
 
 urlpatterns = [
     path('admin/', admin.site.urls),
-    path('users/', include('users.urls')),
-    path('catalog/', include('catalog.urls')),
-
-    # to show a login button in a django rest framework navbar, you must set this route, and add a
-    # `DEFAULT_AUTHENTICATION_CLASSES` config in setting file.
-    # path('api-auth/', include('rest_framework.urls')),
+    path('users/', include('users.urls'), name="users"),
+    path('catalog/', include('catalog.urls'), name="catalog"),
 
     # need to generate swagger-ui
     path("api/schema/", SpectacularAPIView.as_view(), name="schema"),
