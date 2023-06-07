@@ -94,7 +94,7 @@ class AttributeValueView(viewsets.ModelViewSet):
         if self.action == 'update':
             return serializers.AttributeValueSerializer
         if self.action == 'create':
-            return serializers.AttributeValueSerializer
+            return serializers.AttributeMultiValueSerializer
         return self.serializer_class
 
     @extend_schema(
