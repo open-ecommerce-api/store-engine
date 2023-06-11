@@ -1,12 +1,10 @@
-from django.contrib.auth import login
-from django.contrib.auth import logout
+from django.contrib.auth.models import update_last_login
 from rest_framework import status
 from rest_framework.authtoken.models import Token
 from rest_framework.generics import GenericAPIView, CreateAPIView
 from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
-
 
 from . import serializers, email
 
@@ -40,6 +38,8 @@ class SigninView(GenericAPIView):
 
             # this line of code will resolve Token error for superuser:
             token, _ = Token.objects.get_or_create(user=user)
+
+            update_last_login(None, user)
 
             return Response({'token': token.key}, status=status.HTTP_200_OK)
         else:
