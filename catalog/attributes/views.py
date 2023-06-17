@@ -42,6 +42,15 @@ class AttributeView(viewsets.ModelViewSet):
     permission_classes = [IsAdminUser]
     http_method_names = ['get', 'post', 'put', 'delete']
 
+    def list(self, request, *args, **kwargs):
+        attributes = self.get_queryset()
+
+        if attributes.exists():
+            serializer = self.get_serializer(attributes, many=True)
+            return Response(serializer.data)
+        else:
+            return Response({'message': 'No attributes found.'}, status=status.HTTP_204_NO_CONTENT)
+
     @extend_schema(
         tags=["Catalog - Attribute"],
         summary='Retrieve all values of an attribute',
