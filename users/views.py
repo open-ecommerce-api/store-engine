@@ -1,12 +1,10 @@
-from django.contrib.auth import login
-from django.contrib.auth import logout
+from django.contrib.auth.models import update_last_login
 from rest_framework import status
 from rest_framework.authtoken.models import Token
 from rest_framework.generics import GenericAPIView, CreateAPIView
 from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
-
 
 from . import serializers, email
 
@@ -37,11 +35,11 @@ class SigninView(GenericAPIView):
         """
         if serializer.is_valid():
             user = serializer.validated_data['user']
+
             # this line of code will resolve Token error for superuser:
             token, _ = Token.objects.get_or_create(user=user)
 
-            # update the `last_login` field in the user table
-            login(request, user)
+            update_last_login(None, user)
 
             return Response({'token': token.key}, status=status.HTTP_200_OK)
         else:
@@ -114,11 +112,8 @@ class LogoutView(APIView):
         """
         try:
             Token.objects.filter(user=request.user).delete()
-
-            # Logout from sessions
-            logout(request)
-
             return Response({"message": "You have been logged out."}, status=status.HTTP_200_OK)
+
         except Exception as e:
             return Response({"error": str(e)}, status=status.HTTP_400_BAD_REQUEST)
 
