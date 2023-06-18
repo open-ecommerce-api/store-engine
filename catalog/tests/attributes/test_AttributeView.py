@@ -42,26 +42,26 @@ class AttributeViewTest(APITestCase):
         # fill database
         cls.create_attributes()
 
-    def test_create_attribute_permission(self):
+    def test_access_permission(self):
         """
-        Test permissions as non-admin user
+        Test permissions as non-admin user for CRUD methods
         """
 
         # Check unauthorized access
         self.assert_authorization_HTTP_401_UNAUTHORIZED(
-            self.client.get(self.attribute_endpoint)
+            *self.get_crud_methods()
         )
 
         # Check fake Token key
         self.set_fake_authorization()
         self.assert_authorization_HTTP_401_UNAUTHORIZED(
-            self.client.post(self.attribute_endpoint, data=self.attribute_new_data)
+            *self.get_crud_methods()
         )
 
         # Check permission as a regular user
         self.set_user_authorization()
         self.assert_authorization_HTTP_403_FORBIDDEN(
-            self.client.post(self.attribute_endpoint, data=self.attribute_new_data)
+            *self.get_crud_methods()
         )
 
     def test_create_attribute(self):
@@ -73,6 +73,8 @@ class AttributeViewTest(APITestCase):
 
         response = self.client.post(self.attribute_endpoint, data=self.attribute_new_data)
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+
+        # Verify the attribute field names
         self.assertDictEqual(response.json(), {
             'id': response.data['id'],
             'name': self.attribute_new_name,
@@ -94,7 +96,6 @@ class AttributeViewTest(APITestCase):
         Retrieve a list of attributes.
         """
 
-        # init
         self.set_admin_authorization()
 
         response = self.client.get(self.attribute_endpoint)
@@ -110,57 +111,61 @@ class AttributeViewTest(APITestCase):
 
     def test_retrieve_attribute(self):
         """
-        Retrieving a single attribute.
+        Test retrieving a single attribute.
+        Test if attribute doesn't exist.
         """
 
-        # init
         self.set_admin_authorization()
-        response, attribute_id = self.create_attribute('Color')
 
-        # Retrieving a single attribute, base on what I created
-        response = self.client.get(f"{self.attribute_endpoint}{attribute_id}/")
+        response = self.client.get(f"{self.attribute_endpoint}{self.get_attribute_id()}/")
         self.assertEqual(response.status_code, status.HTTP_200_OK)
+
+        # verify the attribute field names
         self.assertEqual(response.data, {
-            'id': attribute_id,
-            'name': 'Color',
+            'id': self.get_attribute_id(),
+            'name': self.attribute_saved_name,
         })
+
+        # if attribute doesn't exist
+        response = self.client.get(f"{self.attribute_endpoint}999/")
+        self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
 
     def test_update_attribute(self):
         """
-        Updating an attribute.
+        Test updating an attribute.
+        Test if attribute doesn't exist.
         """
 
-        # init
         self.set_admin_authorization()
-        response, attribute_id = self.create_attribute('Color')
 
-        # Update the attribute, base on what I created
-        update_data = {
-            'name': 'New Color',
-        }
-        update_url = f"{self.attribute_endpoint}{attribute_id}/"
-        response = self.client.put(update_url, data=update_data)
+        # Test updating an attribute.
+        _id = self.get_attribute_id()
+        response = self.client.put(f"{self.attribute_endpoint}{_id}/", data={'name': self.attribute_new_name})
         self.assertEqual(response.status_code, status.HTTP_200_OK)
+
+        # Verify the attribute is updated
         self.assertEqual(response.data, {
-            'id': attribute_id,
-            'name': 'New Color',
+            'id': _id,
+            'name': self.attribute_new_name,
         })
+
+        # Test if attribute doesn't exist.
+        response = self.client.put(f"{self.attribute_endpoint}{999}/", data={'name': self.attribute_new_name})
+        self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
 
     def test_delete_attribute(self):
         """
-        Deleting an attribute.
+        Test deleting an attribute.
+        Test if attribute doesn't exist.
         """
 
-        # init
         self.set_admin_authorization()
-        response, attribute_id = self.create_attribute('Color')
 
-        # Delete the attribute, base on what I created
-        delete_url = f"{self.attribute_endpoint}{attribute_id}/"
+        delete_url = f"{self.attribute_endpoint}{self.get_attribute_id()}/"
         response = self.client.delete(delete_url)
         self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
 
-        # Verify the attribute is deleted
+        # Test if attribute doesn't exist. (Verify the attribute is deleted)
         response = self.client.get(delete_url)
         self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
 
@@ -192,66 +197,38 @@ class AttributeViewTest(APITestCase):
         """
         self.client.credentials(HTTP_AUTHORIZATION=f'Token {self.user_token_key}')
 
-    def assert_authorization_HTTP_401_UNAUTHORIZED(self, response):
-        self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
+    def assert_authorization_HTTP_401_UNAUTHORIZED(self, *methods):
+        for method in methods:
+            response = method()
+            self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
 
-    def assert_authorization_HTTP_403_FORBIDDEN(self, response):
-        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+    def assert_authorization_HTTP_403_FORBIDDEN(self, *methods):
+        for method in methods:
+            response = method()
+            self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
 
-    def create_attributes(self):
+    def get_crud_methods(self):
+        return (lambda: self.client.get(self.attribute_endpoint),
+                lambda: self.client.post(self.attribute_endpoint, data=self.attribute_new_data),
+                lambda: self.client.put(f"{self.attribute_endpoint}{self.get_attribute_id()}/",
+                                        data=self.attribute_new_data),
+                lambda: self.client.delete(f"{self.attribute_endpoint}{self.get_attribute_id()}/"))
+
+    @classmethod
+    def create_attributes(cls):
         """
         Helper method to create attributes
         """
 
-        for name in self.attribute_names:
+        for name in cls.attribute_names:
             Attribute.objects.create(name=name)
 
-    # def test_permission(self):
-    #     """
-    #     Test that only authenticated users with the `is_staff` permission can access the AttributeView viewset.
-    #     """
-    #     # Unauthenticated user
-    #     url = reverse('attribute-list')
-    #     response = self.client.get(url)
-    #     self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
-    #
-    #     # Authenticated user without `is_staff` permission
-    #     self.client.login(username='user', password='password')
-    #     response = self.client.get(url)
-    #     self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
-    #
-    #     # Authenticated user with `is_staff` permission
-    #     self.client.login(username='admin', password='password')
-    #     response = self.client.get(url)
-    #     self.assertEqual(response.status_code, status.HTTP_200_OK)
-    #
-    #     # Test all HTTP methods
-    #     for method in ['get', 'post', 'put', 'delete']:
-    #         self._check_permission(method)
+    def get_attribute_name(self):
+        return self.attribute_saved_name
 
-    # def _check_permission(self, method):
-    #     """
-    #     Test that only authenticated users with the `is_staff` permission can access the AttributeView viewset using the given HTTP method.
-    #     """
-    #     attribute = Attribute.objects.create(name='Test Attribute')
-    #     url = reverse('attribute-detail', args=[attribute.pk])
-    #     data = {'name': 'New Attribute Name'}
-    #
-    #     # Unauthenticated user
-    #     response = getattr(self.client, method)(url)
-    #     self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
-    #
-    #     # Authenticated user without `is_staff` permission
-    #     self.client.login(username='user', password='password')
-    #     response = getattr(self.client, method)(url)
-    #     self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
-    #
-    #     # Authenticated user with `is_staff` permission
-    #     self.client.login(username='admin', password='password')
-    #     response = getattr(self.client, method)(url, data=data)
-    #     if method in ['post', 'put']:
-    #         self.assertEqual(response.status_code, status.HTTP_200_OK)
-    #     elif method == 'delete':
-    #         self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
-    #     else:
-    #         self.assertEqual(response.status_code, status.HTTP_200_OK)
+    def get_attribute_id(self):
+        try:
+            attribute = Attribute.objects.get(name=self.attribute_saved_name)
+            return attribute.id
+        except Attribute.DoesNotExist:
+            return None
