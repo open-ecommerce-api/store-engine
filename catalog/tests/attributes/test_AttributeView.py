@@ -25,8 +25,8 @@ class AttributeViewTest(APITestCase):
     @classmethod
     def setUpTestData(cls):
         """
-        Create a user with admin permission, then get an admin token key.
-
+        Create users then get token keys.
+        Fill a database with sample data.
         """
 
         # create an admin
