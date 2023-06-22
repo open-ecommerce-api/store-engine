@@ -1,0 +1,6 @@
+drf-spectacular==0.26.2
+attrs==23.1.0
+inflection==0.5.1
+jsonschema==4.17.3
+pyrsistent==0.19.3
+uritemplate==4.1.1
