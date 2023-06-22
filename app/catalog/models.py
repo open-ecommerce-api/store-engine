@@ -15,7 +15,7 @@ class Product(models.Model):
     is_published = models.BooleanField(default=False)
 
     """
-    save selected options with it's values
+    save selected options with it's items
     """
 
     # solution
@@ -35,15 +35,15 @@ class ProductOption(models.Model):
         return self.name
 
 
-class ProductOptionValue(models.Model):
+class ProductOptionItem(models.Model):
     option = models.ForeignKey(ProductOption, on_delete=models.CASCADE)
-    value = models.CharField(max_length=255)
+    item = models.CharField(max_length=255)
 
     class Meta:
-        unique_together = ('option', 'value')
+        unique_together = ('option', 'item')
 
     def __str__(self):
-        return self.value
+        return self.item
 
 
 class Category(models.Model):
@@ -58,7 +58,7 @@ class ProductMedia(models.Model):
 
 class ProductVariant(models.Model):
     """
-    Product variants are created by combining different option values.
+    Product variants are created by combining different option items.
     """
     product = models.ForeignKey(Product, on_delete=models.CASCADE)
     # variant = models.ForeignKey(ProductOption, on_delete=models.CASCADE)
@@ -73,18 +73,18 @@ class ProductVariant(models.Model):
     """
 
     # solution 1
-    # save each option-value-id
+    # save each option-item-id
     # ---------------------------------------------------------------------------------------------
-    # option1 = models.ForeignKey(ProductOptionValue, on_delete=models.CASCADE, null=True, blank=True)
-    # option2 = models.ForeignKey(ProductOptionValue, on_delete=models.CASCADE, null=True, blank=True)
-    # option3 = models.ForeignKey(ProductOptionValue, on_delete=models.CASCADE, null=True, blank=True)
+    # option1 = models.ForeignKey(ProductOptionItem, on_delete=models.CASCADE, null=True, blank=True)
+    # option2 = models.ForeignKey(ProductOptionItem, on_delete=models.CASCADE, null=True, blank=True)
+    # option3 = models.ForeignKey(ProductOptionItem, on_delete=models.CASCADE, null=True, blank=True)
     # ---------------------------------------------------------------------------------------------
 
 
 class Attribute(models.Model):
     """
     In e-commerce, "attributes" and "options" collaborate to create a customizable product offering.
-    By defining relevant attributes and their values, admins can configure products to meet specific needs, enhancing
+    By defining relevant attributes and their items, admins can configure products to meet specific needs, enhancing
     the user experience and enabling customers to find desired variations.
 
     An "attribute list group" streamlines the process by allowing admins to add product options and create variants
@@ -96,9 +96,9 @@ class Attribute(models.Model):
         return self.name
 
 
-class AttributeValue(models.Model):
+class AttributeItem(models.Model):
     attribute = models.ForeignKey(Attribute, on_delete=models.CASCADE)
-    value = models.CharField(max_length=255)
+    item = models.CharField(max_length=255)
 
     class Meta:
-        unique_together = ('attribute', 'value')
+        unique_together = ('attribute', 'item')

@@ -5,8 +5,8 @@ from rest_framework.decorators import action
 from rest_framework.permissions import IsAdminUser
 from rest_framework.response import Response
 
-from catalog.models import AttributeValue, Attribute
-from catalog.attributes import serializers
+from app.catalog.models import AttributeItem, Attribute
+from app.catalog.attributes import serializers
 
 
 @extend_schema_view(
@@ -53,19 +53,19 @@ class AttributeView(viewsets.ModelViewSet):
 
     @extend_schema(
         tags=["Catalog - Attribute"],
-        summary='Retrieve all values of an attribute',
-        description='Retrieve all values of an attribute.',
+        summary='Retrieve all items of an attribute',
+        description='Retrieve all items of an attribute.',
     )
-    @action(methods=['get'], detail=True, url_path='values')
-    def get_attribute_values(self, request, pk=None):
+    @action(methods=['get'], detail=True, url_path='items')
+    def get_attribute_items(self, request, pk=None):
         try:
             pk = int(pk)
         except ValueError:
             return Response({'detail': 'attributes ID should be integer'}, status=status.HTTP_400_BAD_REQUEST)
 
         attribute = get_object_or_404(Attribute, pk=pk)
-        attribute_values = AttributeValue.objects.filter(attribute=attribute)
-        serializer = serializers.AttributeValueSerializer(attribute_values, many=True)
+        attribute_items = AttributeItem.objects.filter(attribute=attribute)
+        serializer = serializers.AttributeItemSerializer(attribute_items, many=True)
         if serializer.data:
             return Response(serializer.data)
         return Response(status=status.HTTP_204_NO_CONTENT)
@@ -74,80 +74,80 @@ class AttributeView(viewsets.ModelViewSet):
 @extend_schema_view(
     retrieve=extend_schema(
         tags=["Catalog - Attribute"],
-        summary='Retrieve a value',
-        description='Retrieve a single value.',
+        summary='Retrieve an item',
+        description='Retrieve a single item.',
     ),
     list=extend_schema(
         tags=["Catalog - Attribute"],
-        summary='Retrieve all values',
-        description="Retrieve all values in any attribute.",
+        summary='Retrieve all items',
+        description="Retrieve all items in any attribute.",
     ),
     update=extend_schema(
         tags=["Catalog - Attribute"],
-        summary='Update a value',
-        description="Update a value.",
+        summary='Update a item',
+        description="Update a item.",
     ),
     destroy=extend_schema(
         tags=["Catalog - Attribute"],
-        summary='Delete a value',
-        description='Delete a single value in an attribute.',
+        summary='Delete a item',
+        description='Delete a single item in an attribute.',
     )
 )
-class AttributeValueView(viewsets.ModelViewSet):
-    queryset = AttributeValue.objects.all()
-    serializer_class = serializers.AttributeValueSerializer
+class AttributeItemView(viewsets.ModelViewSet):
+    queryset = AttributeItem.objects.all()
+    serializer_class = serializers.AttributeItemSerializer
     permission_classes = [IsAdminUser]
     http_method_names = ['get', 'post', 'put', 'delete']
 
     def get_serializer_class(self):
         if self.action == 'update':
-            return serializers.AttributeValueSerializer
+            return serializers.AttributeItemSerializer
         if self.action == 'create':
-            return serializers.AttributeMultiValueSerializer
+            return serializers.AttributeMultiItemSerializer
         return self.serializer_class
 
     @extend_schema(
         tags=["Catalog - Attribute"],
-        summary='Create a new value(s)',
-        description='Create a new value(s) for an attribute.',
+        summary='Create a new item(s)',
+        description='Create a new item(s) for an attribute.',
     )
     def create(self, request, *args, **kwargs):
         """
-        Create one or multiple value.
+        Create one or multiple item.
         """
         serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
 
         attribute_id = serializer.validated_data['attribute_id']
-        values = serializer.validated_data['values']
+        items = serializer.validated_data['items']
 
-        attribute_values = [{'attribute_id': attribute_id, 'value': value} for value in values]
-        serializer = serializers.AttributeValueSerializer(data=attribute_values, many=True)
+        attribute_items = [{'attribute_id': attribute_id, 'item': value} for value in items]
+        serializer = serializers.AttributeItemSerializer(data=attribute_items, many=True)
         serializer.is_valid(raise_exception=True)
         serializer.save()
         return Response(serializer.data, status=status.HTTP_201_CREATED)
 
     @extend_schema(
         tags=["Catalog - Attribute"],
-        summary='Delete Multi Values',
-        description='Delete multi Values form an attribute.',
-        request=serializers.AttributeValueDeleteSerializer,
+        summary='Delete multi items',
+        description='Delete multi items form an attribute.',
+        request=serializers.AttributeItemDeleteSerializer,
     )
-    @action(methods=['post'], detail=False, url_path='delete-values')
-    def delete_attribute_values(self, request):
-        serializer = serializers.AttributeValueDeleteSerializer(data=request.data)
+    @action(methods=['post'], detail=False, url_path='delete-items')
+    def delete_attribute_items(self, request):
+        serializer = serializers.AttributeItemDeleteSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
 
-        value_ids = serializer.validated_data.get('value_ids')
-        if not value_ids:
-            return Response({'detail': 'Value IDs are required.'}, status=status.HTTP_400_BAD_REQUEST)
+        item_ids = serializer.validated_data.get('item_ids')
+        if not item_ids:
+            return Response({'detail': 'Item IDs are required.'}, status=status.HTTP_400_BAD_REQUEST)
 
-        # Filter the attribute values to be deleted using the given value IDs
-        attribute_values = AttributeValue.objects.filter(id__in=value_ids)
+        # Filter the attribute items to be deleted using the given item IDs
+        attribute_items = AttributeItem.objects.filter(id__in=item_ids)
 
-        # Delete the attribute values
-        count, _ = attribute_values.delete()
+        # Delete the attribute items
+        count, _ = attribute_items.delete()
 
         if count > 0:
-            return Response({'detail': f'{count} attribute values deleted successfully.'})
-        return Response({'detail': 'No attribute values found to delete.'}, status=status.HTTP_404_NOT_FOUND)
+            return Response({'detail': f'{count} attribute items deleted successfully.'})
+        return Response({'detail': 'No attribute items found to delete.'}, status=status.HTTP_404_NOT_FOUND)

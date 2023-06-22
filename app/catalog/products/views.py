@@ -5,7 +5,7 @@ from rest_framework.decorators import action
 from rest_framework.permissions import IsAdminUser
 from rest_framework.response import Response
 
-from catalog.models import Product, ProductOption, ProductOptionValue
+from app.catalog.models import Product, ProductOption, ProductOptionItem
 from . import serializers
 
 
@@ -55,7 +55,7 @@ class ProductOptionViewSet(viewsets.ModelViewSet):
             return Response({'detail': 'Option ID should be integer'}, status=status.HTTP_400_BAD_REQUEST)
 
         option = get_object_or_404(ProductOption, pk=pk)
-        option_values = ProductOptionValue.objects.filter(option=option)
+        option_values = ProductOptionItem.objects.filter(option=option)
         serializer = serializers.ProductOptionValueSerializer(option_values, many=True)
         if serializer.data:
             return Response(serializer.data)
@@ -85,7 +85,7 @@ class ProductOptionViewSet(viewsets.ModelViewSet):
     )
 )
 class ProductOptionValueViewSet(viewsets.ModelViewSet):
-    queryset = ProductOptionValue.objects.all()
+    queryset = ProductOptionItem.objects.all()
     serializer_class = serializers.ProductOptionValueSerializer
     permission_classes = [IsAdminUser]
     http_method_names = ['get', 'post', 'put', 'delete']
@@ -134,7 +134,7 @@ class ProductOptionValueViewSet(viewsets.ModelViewSet):
             return Response({'detail': 'Value IDs are required.'}, status=status.HTTP_400_BAD_REQUEST)
 
         # Filter the option values to be deleted using the given value IDs
-        option_values = ProductOptionValue.objects.filter(id__in=value_ids)
+        option_values = ProductOptionItem.objects.filter(id__in=value_ids)
 
         # Delete the option values
         count, _ = option_values.delete()

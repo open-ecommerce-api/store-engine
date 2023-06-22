@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from catalog.models import ProductOption, ProductOptionValue, Product
+from app.catalog.models import ProductOption, ProductOptionItem, Product
 
 
 class ProductOptionSerializer(serializers.ModelSerializer):
@@ -13,7 +13,7 @@ class ProductOptionValueSerializer(serializers.ModelSerializer):
     option_id = serializers.PrimaryKeyRelatedField(queryset=ProductOption.objects.all(), source='option')
 
     class Meta:
-        model = ProductOptionValue
+        model = ProductOptionItem
         fields = ['id', 'value', 'option_id']
 
 
@@ -32,7 +32,7 @@ class OptionMultiValueSerializer(serializers.ModelSerializer):
     option_id = serializers.IntegerField()
 
     class Meta:
-        model = ProductOptionValue
+        model = ProductOptionItem
         fields = ['id', 'values', 'option_id']
 
     def validate(self, attrs):
@@ -53,7 +53,7 @@ class OptionValueUpdateSerializer(serializers.ModelSerializer):
     value = serializers.CharField()
 
     class Meta:
-        model = ProductOptionValue
+        model = ProductOptionItem
         fields = ['id', 'value']
 
 
