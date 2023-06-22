@@ -2,7 +2,7 @@ from django.contrib.auth import get_user_model
 from rest_framework.authtoken.models import Token
 from rest_framework import status
 from rest_framework.test import APITestCase
-from catalog.models import Attribute
+from app.catalog.models import Attribute
 
 
 class AttributeViewTest(APITestCase):
