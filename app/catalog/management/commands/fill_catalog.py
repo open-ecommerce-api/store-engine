@@ -30,13 +30,3 @@ class Command(BaseCommand):
 
             # insert all the AttributeItem objects into the database in a single query
             AttributeItem.objects.bulk_create(item_objects)
-
-    def create_attribute_items(self):
-        for attribute_name, item_list in self.attributes.items():
-            attribute = Attribute.objects.create(name=attribute_name)
-
-            # create a list of AttributeItem objects using a list comprehension
-            item_objects = [AttributeItem(attribute=attribute, item=item) for item in item_list]
-
-            # insert all the AttributeItem objects into the database in a single query
-            AttributeItem.objects.bulk_create(item_objects)
