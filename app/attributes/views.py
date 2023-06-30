@@ -1,12 +1,13 @@
 from django.shortcuts import get_object_or_404
 from drf_spectacular.utils import extend_schema, extend_schema_view
+
 from rest_framework import viewsets, status
 from rest_framework.decorators import action
 from rest_framework.permissions import IsAdminUser
 from rest_framework.response import Response
 
-from app.catalog.models import AttributeItem, Attribute
-from app.catalog.attributes import serializers
+from app.attributes.models import AttributeItem, Attribute, AttributeItemQueryset
+from app.attributes import serializers
 
 
 @extend_schema_view(
@@ -101,9 +102,9 @@ class AttributeItemView(viewsets.ModelViewSet):
 
     def get_serializer_class(self):
         if self.action == 'update':
-            return serializers.AttributeItemUpdateSerializer
+            return self.AttributeItemUpdateSerializer
         if self.action == 'create':
-            return serializers.AttributeMultiItemSerializer
+            return self.AttributeMultiItemSerializer
         return self.serializer_class
 
     @extend_schema(
@@ -122,7 +123,7 @@ class AttributeItemView(viewsets.ModelViewSet):
         items = serializer.validated_data['items']
 
         attribute_items = [{'attribute_id': attribute_id, 'item': value} for value in items]
-        serializer = serializers.AttributeItemSerializer(data=attribute_items, many=True)
+        serializer = self.AttributeItemSerializer(data=attribute_items, many=True)
         serializer.is_valid(raise_exception=True)
         serializer.save()
         return Response(serializer.data, status=status.HTTP_201_CREATED)
@@ -135,18 +136,14 @@ class AttributeItemView(viewsets.ModelViewSet):
     )
     @action(methods=['post'], detail=False, url_path='delete-items')
     def delete_attribute_items(self, request):
-        serializer = serializers.AttributeItemDeleteSerializer(data=request.data)
+        serializer = self.AttributeItemDeleteSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
 
         item_ids = serializer.validated_data.get('item_ids')
         if not item_ids:
             return Response({'detail': 'Item IDs are required.'}, status=status.HTTP_400_BAD_REQUEST)
 
-        # Filter the attribute items to be deleted using the given item IDs
-        attribute_items = AttributeItem.objects.filter(id__in=item_ids)
-
-        # Delete the attribute items
-        count, _ = attribute_items.delete()
+        count = AttributeItemQueryset.delete_items_by_id(item_ids)
 
         if count > 0:
             return Response({'detail': f'{count} attribute items deleted successfully.'})

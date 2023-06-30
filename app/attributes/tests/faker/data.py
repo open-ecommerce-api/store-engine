@@ -1,12 +1,10 @@
-from django.core.management.base import BaseCommand
-from app.catalog.models import Attribute, AttributeItem
+from app.attributes.models import Attribute, AttributeItem
 
 
-class Command(BaseCommand):
+class FakeAttribute:
     """
-    usage: python manage.py fill_catalog
+    Populates the database with initial data
     """
-    help = 'Populates the database with initial data'
 
     attribute_color_items = ['red', 'green', 'black', 'blue']
     attribute_size_items = ['S', 'M', 'L', 'XL', 'XXL']
@@ -18,10 +16,20 @@ class Command(BaseCommand):
         'material': attribute_material_items
     }
 
-    def handle(self, *args, **options):
-        self.populate_attributes()
+    def fill_attributes(self):
+        self.populate_attributes_items()
 
     def populate_attributes(self):
+        """
+        Fil database by fake data
+        """
+        for attribute_name, _ in self.attributes.items():
+            Attribute.objects.create(name=attribute_name)
+
+    def populate_attributes_items(self):
+        """
+        Fil database by fake data
+        """
         for attribute_name, item_list in self.attributes.items():
             attribute = Attribute.objects.create(name=attribute_name)
 
