@@ -21,9 +21,9 @@ from django.conf.urls.static import static
 from drf_spectacular.views import SpectacularAPIView, SpectacularSwaggerView
 
 urlpatterns = [
-    path('admin/', admin.site.urls),
+    path('develop/', admin.site.urls),
     path('users/', include('app.users.urls'), name="users"),
-    path('catalog/', include('app.catalog.urls'), name="catalog"),
+    path('admin/', include('app.attributes.urls'), name="attributes"),
 
     # need to generate swagger-ui
     path("api/schema/", SpectacularAPIView.as_view(), name="schema"),
