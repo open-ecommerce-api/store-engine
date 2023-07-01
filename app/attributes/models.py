@@ -25,10 +25,20 @@ class AttributeItem(models.Model):
 
 
 class AttributeQueryset:
-    ...
+    @staticmethod
+    def get_all_attributes():
+        return Attribute.objects.all()
+
+    @staticmethod
+    def create_attribute(attribute_name):
+        return Attribute.objects.create(name=attribute_name)
 
 
 class AttributeItemQueryset:
+
+    @staticmethod
+    def get_items_by_attribute(attribute):
+        return AttributeItem.objects.filter(attribute=attribute)
 
     @staticmethod
     def delete_items_by_id(item_ids):
@@ -40,3 +50,11 @@ class AttributeItemQueryset:
         # Delete the attribute items
         count, _ = attribute_items.delete()
         return count
+
+    @staticmethod
+    def get_all_items():
+        return AttributeItem.objects.all()
+
+    @staticmethod
+    def bulk_create(item_objects):
+        AttributeItem.objects.bulk_create(item_objects)
