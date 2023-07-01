@@ -79,26 +79,3 @@ class ProductVariant(models.Model):
     # option2 = models.ForeignKey(ProductOptionItem, on_delete=models.CASCADE, null=True, blank=True)
     # option3 = models.ForeignKey(ProductOptionItem, on_delete=models.CASCADE, null=True, blank=True)
     # ---------------------------------------------------------------------------------------------
-
-
-class Attribute(models.Model):
-    """
-    In e-commerce, "attributes" and "options" collaborate to create a customizable product offering.
-    By defining relevant attributes and their items, admins can configure products to meet specific needs, enhancing
-    the user experience and enabling customers to find desired variations.
-
-    An "attribute list group" streamlines the process by allowing admins to add product options and create variants
-    efficiently, saving time when repetitive attributes need to be included.
-    """
-    name = models.CharField(max_length=255, unique=True)
-
-    def __str__(self):
-        return self.name
-
-
-class AttributeItem(models.Model):
-    attribute = models.ForeignKey(Attribute, on_delete=models.CASCADE)
-    item = models.CharField(max_length=255)
-
-    class Meta:
-        unique_together = ('attribute', 'item')
