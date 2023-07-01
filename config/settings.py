@@ -44,7 +44,9 @@ INSTALLED_APPS = [
 
     # Made by the team
     'app.users',
-    'app.catalog',
+    'app.attributes',
+    'app.products',
+    'app.demo',
 ]
 
 REST_FRAMEWORK = {
@@ -119,11 +121,11 @@ WSGI_APPLICATION = 'config.wsgi.application'
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql',
-        'NAME': 'open_ecommerce_catalog',
+        'NAME': 'postgres',
         'USER': 'postgres',
         'PASSWORD': 'admin',
-        # 'HOST': 'db',  # used in docker
-        'HOST': 'localhost',  # used in local
+        'HOST': 'db',  # used in docker
+        # 'HOST': 'localhost',  # used in local
         'PORT': 5432,
     }
 }
