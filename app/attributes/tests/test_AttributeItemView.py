@@ -1,52 +1,23 @@
-from app.attributes.tests.base import BaseTestCase
+from app.attributes.tests.faker.data import FakeAttribute as _Data
+from app.attributes.tests.base_test_case import BaseTestCase
 from app.attributes.models import Attribute, AttributeItem
 
 
 class AttributeValueViewTest(BaseTestCase):
     """
-    [] Test access permissions for CRUD methods
+    [*] Test access permissions for CRUD methods
     [] Test CRUD results base on the multi scenario
     [] Test Retrieve all items of an attribute
     [] Test delete multi items
     """
     attribute_items_endpoint = "/catalog/attribute-items/"
 
-    color_items = ['red', 'green', 'black']
-    size_items = ['S', 'M', 'L', 'XL']
-    material_items = ['Cotton', 'Nylon']
-
-    item_saved_name = 'red'
-    item_saved_data = {'item': item_saved_name}
-
-    attributes = {
-        'color': color_items,
-        'size': size_items,
-        'material': material_items
-    }
-
-    new_items = ['new 1', 'new 2', 'new 3']
-
     @classmethod
     def setUpTestData(cls):
         super().setUpTestData()
 
-        # fill database
-        cls.create_attribute_items()
-
-    @classmethod
-    def create_attribute_items(cls):
-        """
-        Helper method to create attributes
-        """
-
-        # for attribute_name, item_list in cls.attributes.items():
-        #     attribute = Attribute.objects.get(name=attribute_name)
-
-        # create a list of AttributeItem objects using a list comprehension
-        # item_objects = [AttributeItem(attribute=attribute, item=item) for item in item_list]
-
-        # insert all the AttributeItem objects into the database in a single query
-        # AttributeItem.objects.bulk_create(item_objects)
+        # populate database
+        _Data().populate_attributes_items()
 
     def test_access_permission(self):
         """
@@ -94,14 +65,13 @@ class AttributeValueViewTest(BaseTestCase):
 
     def get_crud_methods(self):
         return (lambda: self.client.get(self.attribute_items_endpoint),
-                lambda: self.client.post(self.attribute_items_endpoint, data=self.new_items),
-                lambda: self.client.put(f"{self.attribute_items_endpoint}{self.get_item_id()}/",
-                                        data=self.item_saved_data),
-                lambda: self.client.delete(f"{self.attribute_items_endpoint}{self.get_item_id()}/"))
+                lambda: self.client.post(self.attribute_items_endpoint),
+                lambda: self.client.put(self.attribute_items_endpoint),
+                lambda: self.client.delete(self.attribute_items_endpoint))
 
     def get_item_id(self):
         try:
-            attribute = AttributeItem.objects.get(item=self.item_saved_name)
+            attribute = AttributeItem.objects.get(item=_Data.item_saved_name)
             return attribute.id
         except Attribute.DoesNotExist:
             return None

@@ -19,6 +19,11 @@ class FakeAttribute:
 
     attribute_saved_name = "color"
 
+    item_saved_name = 'red'
+    item_saved_data = {'item': item_saved_name}
+
+    new_items = ['new 1', 'new 2', 'new 3']
+
     def fill_attributes(self):
         self.populate_attributes_items()
 
