@@ -6,7 +6,7 @@ from rest_framework.decorators import action
 from rest_framework.permissions import IsAdminUser
 from rest_framework.response import Response
 
-from app.attributes.models import AttributeItem, Attribute, AttributeItemQueryset
+from app.attributes.models import Attribute, AttributeQueryset, AttributeItemQueryset
 from app.attributes import serializers
 
 
@@ -38,7 +38,7 @@ from app.attributes import serializers
     )
 )
 class AttributeView(viewsets.ModelViewSet):
-    queryset = Attribute.objects.all()
+    queryset = AttributeQueryset.get_all_attributes()
     serializer_class = serializers.AttributeSerializer
     permission_classes = [IsAdminUser]
     http_method_names = ['get', 'post', 'put', 'delete']
@@ -65,7 +65,7 @@ class AttributeView(viewsets.ModelViewSet):
             return Response({'detail': 'attributes ID should be integer'}, status=status.HTTP_400_BAD_REQUEST)
 
         attribute = get_object_or_404(Attribute, pk=pk)
-        attribute_items = AttributeItem.objects.filter(attribute=attribute)
+        attribute_items = AttributeItemQueryset.get_items_by_attribute(attribute=attribute)
         serializer = serializers.AttributeItemSerializer(attribute_items, many=True)
         if serializer.data:
             return Response(serializer.data)
@@ -95,7 +95,7 @@ class AttributeView(viewsets.ModelViewSet):
     )
 )
 class AttributeItemView(viewsets.ModelViewSet):
-    queryset = AttributeItem.objects.all()
+    queryset = AttributeItemQueryset.get_all_items()
     serializer_class = serializers.AttributeItemSerializer
     permission_classes = [IsAdminUser]
     http_method_names = ['get', 'post', 'put', 'delete']
