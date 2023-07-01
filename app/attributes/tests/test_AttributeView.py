@@ -1,7 +1,7 @@
 from rest_framework import status
-from app.attributes.tests.base import BaseTestCase
+from app.attributes.tests.base_test_case import BaseTestCase
 from app.attributes.models import Attribute
-from app.attributes.tests.faker.data import FakeAttribute
+from app.attributes.tests.faker.data import FakeAttribute as _Data
 
 
 class AttributeViewTest(BaseTestCase):
@@ -13,7 +13,8 @@ class AttributeViewTest(BaseTestCase):
     # init data
     attribute_endpoint = "/catalog/attributes/"  # better to do reverse('catalog:attribute-list')` but I cant fix it
 
-    attribute_saved_name = "color"
+    # attribute_saved_name = "color"
+    attribute_saved_name = _Data.attribute_saved_name
 
     @classmethod
     def setUpTestData(cls):
@@ -24,7 +25,7 @@ class AttributeViewTest(BaseTestCase):
         super().setUpTestData()
 
         # fill database
-        FakeAttribute().populate_attributes()
+        _Data().populate_attributes()
 
     def test_access_permission(self):
         """
@@ -71,7 +72,7 @@ class AttributeViewTest(BaseTestCase):
 
         # init
         self.set_admin_authorization()
-        response = self.client.post(self.attribute_endpoint, data={'name': self.attribute_saved_name})
+        response = self.client.post(self.attribute_endpoint, data={'name': _Data.attribute_saved_name})
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
         self.assertEqual(response.data, {"name": ["attribute with this name already exists."]})
 
@@ -89,7 +90,7 @@ class AttributeViewTest(BaseTestCase):
         # verify the attribute field names
         self.assertEqual(response.data, {
             'id': self.get_attribute_id(),
-            'name': self.attribute_saved_name,
+            'name': _Data.attribute_saved_name,
         })
 
         # if attribute doesn't exist
@@ -158,7 +159,7 @@ class AttributeViewTest(BaseTestCase):
 
     def get_attribute_id(self):
         try:
-            attribute = Attribute.objects.get(name=self.attribute_saved_name)
+            attribute = Attribute.objects.get(name=_Data.attribute_saved_name)
             return attribute.id
         except Attribute.DoesNotExist:
             return None
