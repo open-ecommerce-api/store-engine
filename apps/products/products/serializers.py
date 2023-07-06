@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from app.catalog.models import ProductOption, ProductOptionItem, Product
+from apps.catalog.models import ProductOption, ProductOptionItem, Product
 
 
 class ProductOptionSerializer(serializers.ModelSerializer):

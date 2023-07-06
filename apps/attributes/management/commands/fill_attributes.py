@@ -1,5 +1,5 @@
 from django.core.management.base import BaseCommand
-from app.attributes.tests.faker.data import FakeAttribute
+from apps.attributes.tests.faker.data import FakeAttribute
 
 
 class Command(BaseCommand):

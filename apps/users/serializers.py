@@ -5,7 +5,7 @@ from django.db import IntegrityError
 from rest_framework import serializers
 from rest_framework.authtoken.models import Token
 
-from app.users.models import User
+from apps.users.models import User
 
 
 class SigninSerializer(serializers.Serializer):

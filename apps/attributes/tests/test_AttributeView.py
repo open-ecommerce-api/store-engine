@@ -1,7 +1,7 @@
 from rest_framework import status
-from app.attributes.tests.base_test_case import BaseTestCase
-from app.attributes.models import Attribute
-from app.attributes.tests.faker.data import FakeAttribute as _Data
+from apps.attributes.tests.base_test_case import BaseTestCase
+from apps.attributes.models import Attribute
+from apps.attributes.tests.faker.data import FakeAttribute as _Data
 
 
 class AttributeViewTest(BaseTestCase):
@@ -11,9 +11,8 @@ class AttributeViewTest(BaseTestCase):
     """
 
     # init data
-    attribute_endpoint = "/catalog/attributes/"  # better to do reverse('catalog:attribute-list')` but I cant fix it
+    attribute_endpoint = "/admin/attributes/"  # better to do reverse('catalog:attribute-list')` but I cant fix it
 
-    # attribute_saved_name = "color"
     attribute_saved_name = _Data.attribute_saved_name
 
     @classmethod
@@ -59,7 +58,7 @@ class AttributeViewTest(BaseTestCase):
         response = self.client.post(self.attribute_endpoint, data={'name': 'color2', })
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
 
-        # Verify the attribute field names
+        # verify response body
         self.assertDictEqual(response.json(), {
             'id': response.data['id'],
             'name': 'color2',
@@ -87,7 +86,7 @@ class AttributeViewTest(BaseTestCase):
         response = self.client.get(f"{self.attribute_endpoint}{self.get_attribute_id()}/")
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
-        # verify the attribute field names
+        # verify response body
         self.assertEqual(response.data, {
             'id': self.get_attribute_id(),
             'name': _Data.attribute_saved_name,
@@ -110,7 +109,7 @@ class AttributeViewTest(BaseTestCase):
         response = self.client.put(f"{self.attribute_endpoint}{_id}/", data={'name': 'color3'})
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
-        # Verify the attribute is updated
+        # verify response body
         self.assertEqual(response.data, {
             'id': _id,
             'name': 'color3',
@@ -157,7 +156,8 @@ class AttributeViewTest(BaseTestCase):
                 lambda: self.client.put(f"{self.attribute_endpoint}{self.get_attribute_id()}/"),
                 lambda: self.client.delete(f"{self.attribute_endpoint}{self.get_attribute_id()}/"))
 
-    def get_attribute_id(self):
+    @staticmethod
+    def get_attribute_id():
         try:
             attribute = Attribute.objects.get(name=_Data.attribute_saved_name)
             return attribute.id

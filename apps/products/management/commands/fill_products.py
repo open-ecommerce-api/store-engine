@@ -1,5 +1,5 @@
 # from django.core.management.base import BaseCommand
-# from app.catalog.tests.attributes.fake_data import FakeAttribute
+# from apps.catalog.tests.attributes.fake_data import FakeAttribute
 #
 #
 # class Command(BaseCommand):

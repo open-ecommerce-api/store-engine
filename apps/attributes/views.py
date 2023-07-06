@@ -6,33 +6,33 @@ from rest_framework.decorators import action
 from rest_framework.permissions import IsAdminUser
 from rest_framework.response import Response
 
-from app.attributes.models import Attribute, AttributeQueryset, AttributeItemQueryset
-from app.attributes import serializers
+from apps.attributes.models import Attribute, AttributeQueryset, AttributeItemQueryset
+from apps.attributes import serializers
 
 
 @extend_schema_view(
     create=extend_schema(
-        tags=["Catalog - Attribute"],
+        tags=["Attribute"],
         summary='Create a new attribute',
         description='Create a new attribute.',
     ),
     retrieve=extend_schema(
-        tags=["Catalog - Attribute"],
+        tags=["Attribute"],
         summary='Retrieve an attribute',
         description='Retrieve a single attribute by `id`.',
     ),
     update=extend_schema(
-        tags=["Catalog - Attribute"],
+        tags=["Attribute"],
         summary='Update an attribute',
         description="Update an attribute's name.",
     ),
     destroy=extend_schema(
-        tags=["Catalog - Attribute"],
+        tags=["Attribute"],
         summary='Delete an attribute',
         description='Delete an attribute.',
     ),
     list=extend_schema(
-        tags=["Catalog - Attribute"],
+        tags=["Attribute"],
         summary='Retrieve a list of attributes',
         description='Retrieve a list of attributes.',
     )
@@ -53,7 +53,7 @@ class AttributeView(viewsets.ModelViewSet):
             return Response({'message': 'No attributes found.'}, status=status.HTTP_204_NO_CONTENT)
 
     @extend_schema(
-        tags=["Catalog - Attribute"],
+        tags=["Attribute"],
         summary='Retrieve all items of an attribute',
         description='Retrieve all items of an attribute.',
     )
@@ -74,22 +74,22 @@ class AttributeView(viewsets.ModelViewSet):
 
 @extend_schema_view(
     retrieve=extend_schema(
-        tags=["Catalog - Attribute"],
+        tags=["Attribute"],
         summary='Retrieve an item',
         description='Retrieve a single item.',
     ),
     list=extend_schema(
-        tags=["Catalog - Attribute"],
+        tags=["Attribute"],
         summary='Retrieve all items',
         description="Retrieve all items in any attribute.",
     ),
     update=extend_schema(
-        tags=["Catalog - Attribute"],
+        tags=["Attribute"],
         summary='Update a item',
         description="Update a item.",
     ),
     destroy=extend_schema(
-        tags=["Catalog - Attribute"],
+        tags=["Attribute"],
         summary='Delete a item',
         description='Delete a single item in an attribute.',
     )
@@ -102,13 +102,13 @@ class AttributeItemView(viewsets.ModelViewSet):
 
     def get_serializer_class(self):
         if self.action == 'update':
-            return self.AttributeItemUpdateSerializer
+            return serializers.AttributeItemUpdateSerializer
         if self.action == 'create':
-            return self.AttributeMultiItemSerializer
+            return serializers.AttributeMultiItemSerializer
         return self.serializer_class
 
     @extend_schema(
-        tags=["Catalog - Attribute"],
+        tags=["Attribute"],
         summary='Create a new item(s)',
         description='Create a new item(s) for an attribute.',
     )
@@ -123,20 +123,20 @@ class AttributeItemView(viewsets.ModelViewSet):
         items = serializer.validated_data['items']
 
         attribute_items = [{'attribute_id': attribute_id, 'item': value} for value in items]
-        serializer = self.AttributeItemSerializer(data=attribute_items, many=True)
+        serializer = serializers.AttributeItemSerializer(data=attribute_items, many=True)
         serializer.is_valid(raise_exception=True)
         serializer.save()
         return Response(serializer.data, status=status.HTTP_201_CREATED)
 
     @extend_schema(
-        tags=["Catalog - Attribute"],
+        tags=["Attribute"],
         summary='Delete multi items',
         description='Delete multi items form an attribute.',
         request=serializers.AttributeItemDeleteSerializer,
     )
     @action(methods=['post'], detail=False, url_path='delete-items')
     def delete_attribute_items(self, request):
-        serializer = self.AttributeItemDeleteSerializer(data=request.data)
+        serializer = serializers.AttributeItemDeleteSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
 
         item_ids = serializer.validated_data.get('item_ids')

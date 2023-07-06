@@ -1,6 +1,6 @@
 from django.apps import AppConfig
 
 
-class AttributesConfig(AppConfig):
+class CatalogConfig(AppConfig):
     default_auto_field = 'django.db.models.BigAutoField'
-    name = 'app.attributes'
+    name = 'apps.products'

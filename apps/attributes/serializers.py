@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from app.attributes.models import AttributeItem, Attribute
+from apps.attributes.models import AttributeItem, Attribute
 
 
 class AttributeSerializer(serializers.ModelSerializer):

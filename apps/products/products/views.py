@@ -5,7 +5,7 @@ from rest_framework.decorators import action
 from rest_framework.permissions import IsAdminUser
 from rest_framework.response import Response
 
-from app.catalog.models import Product, ProductOption, ProductOptionItem
+from apps.catalog.models import Product, ProductOption, ProductOptionItem
 from . import serializers
 
 

@@ -1,5 +1,5 @@
-from app.attributes.models import AttributeItem
-from app.attributes.models import AttributeQueryset, AttributeItemQueryset
+from apps.attributes.models import AttributeItem
+from apps.attributes.models import AttributeQueryset, AttributeItemQueryset
 
 
 class FakeAttribute:
@@ -21,8 +21,6 @@ class FakeAttribute:
 
     item_saved_name = 'red'
     item_saved_data = {'item': item_saved_name}
-
-    new_items = ['new 1', 'new 2', 'new 3']
 
     def fill_attributes(self):
         self.populate_attributes_items()
