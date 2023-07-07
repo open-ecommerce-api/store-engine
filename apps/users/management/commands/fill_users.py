@@ -9,5 +9,5 @@ class Command(BaseCommand):
     help = 'Populates the database with initial data'
 
     def handle(self, *args, **options):
-        get_user_model().objects.create_superuser('admin@a.com', 'admin1234')
-        get_user_model().objects.create_user('user@a.com', 'user1234')
+        get_user_model().objects.create_superuser('admin@test.com', 'admin1234')
+        get_user_model().objects.create_user('user@test.com', 'user1234')
