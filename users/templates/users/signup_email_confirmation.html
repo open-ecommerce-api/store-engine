@@ -1,0 +1,16 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<meta charset="UTF-8">
+	<title>Open Ecommerce - Confirm Your Email Address</title>
+</head>
+<body>
+	<h1>Open Ecommerce</h1>
+	<p>Dear {{ user.username }},</p>
+	<p>Thank you for registering with Open Ecommerce! Please confirm your email address by entering the following OTP:</p>
+	<p>Your OTP is: <b>{{ user.totp }}</b></p>
+	<p>If you did not request this email, please ignore it.</p>
+	<p>Thank you,</p>
+	<p>The Open Ecommerce Team.</p>
+</body>
+</html>
