@@ -1,6 +1,8 @@
 from django.contrib.auth.models import update_last_login
+from django.contrib.auth.views import default_token_generator
+from django.utils.encoding import force_bytes
+from django.utils.http import urlsafe_base64_encode
 from rest_framework.authtoken.models import Token
-from rest_framework.generics import GenericAPIView
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.status import HTTP_200_OK, HTTP_400_BAD_REQUEST
@@ -43,7 +45,7 @@ class ConfirmSignupView(APIView):
         return Response({'message': 'Account activated successfully.'}, status=HTTP_200_OK)
 
 
-class SigninView(GenericAPIView):
+class SigninView(APIView):
     """
     This code creates a view for user signin.
     When a POST request is sent to this view with the required data, it authenticates the user and logs them in if the
@@ -64,7 +66,6 @@ class SigninView(GenericAPIView):
         serializer.is_valid(raise_exception=True)
         user = serializer.validated_data
 
-        # this line of code will resolve Token error for superuser:
         token, _ = Token.objects.get_or_create(user=user)
 
         update_last_login(None, user)
@@ -103,7 +104,7 @@ class LogoutView(APIView):
             return Response({"error": str(e)}, status=HTTP_400_BAD_REQUEST)
 
 
-class PasswordResetView(GenericAPIView):
+class PasswordResetView(APIView):
     serializer_class = serializers.PasswordResetSerializer
 
     def post(self, request):
@@ -123,30 +124,29 @@ class PasswordResetView(GenericAPIView):
         return Response({'detail': 'Password reset email sent.'}, status=HTTP_200_OK)
 
 
-class PasswordResetConfirmView(GenericAPIView):
+class PasswordResetConfirmView(APIView):
     serializer_class = serializers.PasswordResetConfirmSerializer
 
-    def post(self, request, *args, **kwargs):
-        serializer = self.get_serializer(data=request.data, context={'token': kwargs.get('token')})
+    def put(self, request, uidb64, token):
+        serializer = self.serializer_class(data=request.data, context={'token': token, 'uidb64': uidb64})
         serializer.is_valid(raise_exception=True)
         serializer.save()
 
         return Response({'detail': 'Password has been reset.'}, status=HTTP_200_OK)
 
 
-class ChangePasswordView(GenericAPIView):
+class ChangePasswordView(APIView):
     serializer_class = serializers.ChangePasswordSerializer
     permission_classes = (IsAuthenticated,)
 
-    def post(self, request):
+    def put(self, request):
         user = request.user
         serializer = self.serializer_class(data=request.data, context={'user': user})
         serializer.is_valid(raise_exception=True)
         user.set_password(serializer.validated_data)
         user.save()
 
-        # send mail
-        # email.SendEmail.send_change_password(user)
+        Email.send_change_password(user)
 
         return Response({'detail': 'Password changed successfully'}, status=HTTP_200_OK)
 
@@ -160,11 +160,12 @@ class ChangeEmailView(APIView):
         serializer = self.serializer_class(data=request.data, context={'user': user})
         serializer.is_valid(raise_exception=True)
         new_email = serializer.validated_data
+
         # save the new email in user session to use after validation
         request.session['email'] = new_email
 
         user.save_totp()
-        # send email
+
         Email.send_change_email(user, new_email)
 
         return Response({'detail': 'An OTP has been sent to your new email'}, status=HTTP_200_OK)
@@ -178,6 +179,7 @@ class ChangeEmailConfirmView(APIView):
         serializer = self.serializer_class(data=request.data)
         serializer.is_valid(raise_exception=True)
         user = request.user
+
         if not user.validate_totp(serializer.validated_data['totp']):
             return Response({'message': 'Invalid otp.'}, status=HTTP_400_BAD_REQUEST)
 
