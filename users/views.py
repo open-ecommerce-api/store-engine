@@ -113,13 +113,12 @@ class PasswordResetView(APIView):
 
         user = serializer.validated_data['user']
 
-        # Delete any existing tokens for the user
-        Token.objects.filter(user=user).delete()
-        # Create a new token for the user
-        token = Token.objects.create(user=user)
+        # generate reset password token
+        token = default_token_generator.make_token(user)
+        uid = urlsafe_base64_encode(force_bytes(user.pk))
 
         # Send password reset email
-        Email.send_password_reset(request, user, token)
+        Email.send_password_reset(request, user, token, uid)
 
         return Response({'detail': 'Password reset email sent.'}, status=HTTP_200_OK)
 
