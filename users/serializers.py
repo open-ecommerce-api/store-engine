@@ -1,12 +1,14 @@
 from django.contrib.auth import authenticate, get_user_model
 from django.contrib.auth.hashers import check_password
 from django.contrib.auth.password_validation import validate_password
+from django.contrib.auth.views import default_token_generator
 from django.db import IntegrityError
 from rest_framework import serializers
 from rest_framework.authtoken.models import Token
 from rest_framework.exceptions import ValidationError
 
 from users.models import User
+from .utils import get_user
 
 
 class SignupSerializer(serializers.Serializer):
@@ -88,10 +90,11 @@ class PasswordResetSerializer(serializers.Serializer):
     email = serializers.EmailField()
 
     def validate(self, data):
-        if get_user_model().objects.filter(email=data.get('email')).exists():
-            data['user'] = User.objects.get(email=data.get('email'))
-        else:
-            raise serializers.ValidationError("This email address is not associated with any user account.")
+        try:
+            data['user'] = get_user_model().objects.get(email=data.get('email'), is_active=True)
+        except get_user_model().DoesNotExist:
+            raise serializers.ValidationError("This email address is not associated with any active user account.")
+
         return data
 
 
@@ -101,10 +104,10 @@ class PasswordResetConfirmSerializer(serializers.Serializer):
 
     def validate(self, data):
 
+        data['user'] = get_user(self.context['uidb64'])
+
         # validate token
-        try:
-            data['token'] = Token.objects.get(key=self.context['token'])
-        except Token.DoesNotExist:
+        if not default_token_generator.check_token(data['user'], self.context['token']):
             raise serializers.ValidationError('Invalid password reset.')
 
         # validate new password
@@ -114,13 +117,9 @@ class PasswordResetConfirmSerializer(serializers.Serializer):
         return data
 
     def create(self, validated_data):
-        token = validated_data['token']
-        user = token.user
+        user = validated_data['user']
         user.set_password(validated_data['new_password'])
         user.save()
-
-        # Delete the token after password reset
-        token.delete()
         return user
 
 
