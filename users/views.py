@@ -183,7 +183,9 @@ class ChangeEmailConfirmView(APIView):
         if not user.validate_totp(serializer.validated_data['totp']):
             return Response({'message': 'Invalid otp.'}, status=HTTP_400_BAD_REQUEST)
 
-        user.email = request.session['email']
-        user.save()
-        request.session.clear()
-        return Response({'message': 'successfully changed your email address'}, status=HTTP_200_OK)
+        if request.session.get('email'):
+            user.email = request.session['email']
+            user.save()
+            request.session.clear()
+            return Response({'message': 'successfully changed your email address'}, status=HTTP_200_OK)
+        return Response({'message': 'change email failed'}, status=HTTP_400_BAD_REQUEST)
