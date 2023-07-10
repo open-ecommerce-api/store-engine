@@ -11,16 +11,17 @@ class Email:
 
     @classmethod
     def send(cls, subject, text_content, html_content, to_email, ):
-        # try:
-        email = EmailMultiAlternatives(subject, text_content, cls.from_email, [to_email])
-        email.attach_alternative(html_content, "text/html")
-        # Send the email
-        email.send(fail_silently=False)
+        try:
+            email = EmailMultiAlternatives(subject, text_content, cls.from_email, [to_email])
+            if html_content:
+                email.attach_alternative(html_content, "text/html")
+            # Send the email
+            email.send(fail_silently=False)
 
-        # except Exception as e:
-        #
-        #     # Handle any exceptions that occur during sending
-        #     raise Exception(f'Failed to send email: {str(e)}')
+        except Exception as e:
+
+            # Handle any exceptions that occur during sending
+            raise Exception(f'Failed to send email: {str(e)}')
 
     @classmethod
     def send_signup_confirmation(cls, user):
@@ -29,22 +30,17 @@ class Email:
         cls.send('Confirm your email address', text_content, html_content, user.email)
 
     @classmethod
-    def send_password_reset(cls, request, user, token):
+    def send_password_reset(cls, request, user, token, uid):
         # Generate the URL for the password reset link
-        reset_url = request.build_absolute_uri(reverse('password_reset_confirm', args=[str(token.key)]))
+        reset_url = request.build_absolute_uri(reverse('password_reset_confirm', args=[uid, token]))
         html_content = render_to_string('users/reset_password_link.html', {'user': user, 'reset_url': reset_url})
         text_content = strip_tags(html_content)
         cls.send('Password reset request', text_content, html_content, user.email)
 
-    # @classmethod
-    # def send_change_password(cls, user):
-    #     message = f'Hi {user.username}, your password has been changed successfully.'
-    #     cls.send(
-    #         subject='Password changed',
-    #         from_email=settings.DEFAULT_FROM_EMAIL,
-    #         recipient_list=[user.email],
-    #         message=message,
-    #     )
+    @classmethod
+    def send_change_password(cls, user):
+        message = f'Hi {user.username}, your password has been changed successfully.'
+        cls.send('Password changed', message, html_content=None, to_email=user.email)
 
     @classmethod
     def send_change_email(cls, user, new_email):
