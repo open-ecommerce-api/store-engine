@@ -23,6 +23,9 @@ class AttributeItem(models.Model):
     class Meta:
         unique_together = ('attribute', 'item')
 
+    def __str__(self):
+        return self.item
+
 
 class AttributeQueryset:
     @staticmethod
