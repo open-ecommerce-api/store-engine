@@ -175,6 +175,7 @@ AUTH_USER_MODEL = 'users.User'
 DEFAULT_FROM_EMAIL = 'noreply@pysell.ir'
 EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
 
-# OTP
-OTP_EXPIRATION = 90
+# totp expiration time in seconds
+TOTP_EXPIRATION_TIME = 120
+
 PASSWORD_RESET_TIMEOUT = 180
