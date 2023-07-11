@@ -1,5 +1,4 @@
-from apps.attributes.models import AttributeItem
-from apps.attributes.models import AttributeQueryset, AttributeItemQueryset
+from apps.attributes.models import AttributeItem, AttributeQueryset, AttributeItemQueryset
 
 
 class FakeAttribute:
