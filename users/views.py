@@ -1,11 +1,9 @@
 from django.contrib.auth.models import update_last_login
 from django.contrib.auth.views import default_token_generator
-from django.utils.encoding import force_bytes
-from django.utils.http import urlsafe_base64_encode
 from rest_framework.authtoken.models import Token
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
-from rest_framework.status import HTTP_200_OK, HTTP_400_BAD_REQUEST
+from rest_framework.status import HTTP_200_OK, HTTP_400_BAD_REQUEST, HTTP_201_CREATED
 from rest_framework.views import APIView
 
 from . import serializers
@@ -18,10 +16,13 @@ class SignupView(APIView):
     def post(self, request):
         serializer = self.serializer_class(data=request.data)
         serializer.is_valid(raise_exception=True)
+
         user = serializer.save(is_active=False)
         user.save_totp()
+
         Email.send_signup_confirmation(user)
-        return Response({'detail': 'OTP validation code has been sent to your email'}, status=HTTP_200_OK)
+
+        return Response({'detail': 'OTP validation code has been sent to your email'}, status=HTTP_201_CREATED)
 
 
 class ConfirmSignupView(APIView):
@@ -30,13 +31,7 @@ class ConfirmSignupView(APIView):
     def post(self, request):
         serializer = self.serializer_class(data=request.data)
         serializer.is_valid(raise_exception=True)
-        user = serializer.validated_data['user']
-        otp = serializer.validated_data['totp']
-
-        if user.is_active:
-            return Response({'message': 'Account already activated.'}, status=HTTP_400_BAD_REQUEST)
-        if not user.validate_totp(otp):
-            return Response({'message': 'Invalid OTP'})
+        user = serializer.validated_data
 
         # Activate the user, email is confirmed
         user.is_active = True
@@ -47,9 +42,7 @@ class ConfirmSignupView(APIView):
 
 class SigninView(APIView):
     """
-    This code creates a view for user signin.
-    When a POST request is sent to this view with the required data, it authenticates the user and logs them in if the
-    credentials are valid.
+        Signin view to obtain authentication token with correct credentials
     """
     serializer_class = serializers.SigninSerializer
 
@@ -111,14 +104,13 @@ class PasswordResetView(APIView):
         serializer = self.serializer_class(data=request.data)
         serializer.is_valid(raise_exception=True)
 
-        user = serializer.validated_data['user']
+        user = serializer.validated_data
 
         # generate reset password token
         token = default_token_generator.make_token(user)
-        uid = urlsafe_base64_encode(force_bytes(user.pk))
 
         # Send password reset email
-        Email.send_password_reset(request, user, token, uid)
+        Email.send_password_reset(request, user, token)
 
         return Response({'detail': 'Password reset email sent.'}, status=HTTP_200_OK)
 
@@ -126,8 +118,8 @@ class PasswordResetView(APIView):
 class PasswordResetConfirmView(APIView):
     serializer_class = serializers.PasswordResetConfirmSerializer
 
-    def put(self, request, uidb64, token):
-        serializer = self.serializer_class(data=request.data, context={'token': token, 'uidb64': uidb64})
+    def put(self, request, token):
+        serializer = self.serializer_class(data=request.data, context={'token': token})
         serializer.is_valid(raise_exception=True)
         serializer.save()
 
@@ -161,7 +153,8 @@ class ChangeEmailView(APIView):
         new_email = serializer.validated_data
 
         # save the new email in user session to use after validation
-        request.session['email'] = new_email
+        # TODO: find a better way to store the user new_email. this approach is not bad for now.
+        request.session['new_email'] = new_email
 
         user.save_totp()
 
@@ -171,19 +164,21 @@ class ChangeEmailView(APIView):
 
 
 class ChangeEmailConfirmView(APIView):
-    serializer_class = serializers.ChangeEmailConfirmSerializer
+    serializer_class = serializers.TOTPSerializer
     permission_classes = [IsAuthenticated]
 
-    def post(self, request):
+    def put(self, request):
         serializer = self.serializer_class(data=request.data)
         serializer.is_valid(raise_exception=True)
         user = request.user
 
-        if not user.validate_totp(serializer.validated_data['totp']):
-            return Response({'message': 'Invalid otp.'}, status=HTTP_400_BAD_REQUEST)
+        if not user.verify_totp(serializer.validated_data['totp']):
+            return Response({'message': 'Invalid TOTP.'}, status=HTTP_400_BAD_REQUEST)
 
-        if request.session.get('email'):
-            user.email = request.session['email']
+        new_email = request.session.get('new_email')
+
+        if new_email:
+            user.email = new_email
             user.save()
             request.session.clear()
             return Response({'message': 'successfully changed your email address'}, status=HTTP_200_OK)
