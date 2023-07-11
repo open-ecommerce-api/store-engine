@@ -3,30 +3,27 @@ from string import digits
 from django.contrib.auth import get_user_model
 from django.core.exceptions import ValidationError
 from django.utils.crypto import get_random_string
-from django.utils.http import urlsafe_base64_decode
 
 
 def generate_otp(length) -> str:
     """
-    returns an all-numeric OTP code with custom length
+        Generates a random numeric string of the specified length to be used as a time-based
+        one-time password (TOTP) code.
+
+        Args:
+            length (int): The length of the generated OTP code.
+
+        Returns:
+            str: A random numeric string of the specified length.
+
+        Example:
+            >>> code = generate_otp(length=6)
+            >>> print(code)
+            '123456'
     """
     return get_random_string(length=length, allowed_chars=digits)
 
 
-def get_user(uidb64):
-    """
-    Retrieves the user object from a stored pk in urlsafe encoded base64 value
-    """
-    try:
-        # urlsafe_base64_decode() decodes to bytestring
-        uid = urlsafe_base64_decode(uidb64).decode()
-        user = get_user_model()._default_manager.get(pk=uid)
-    except (
-            TypeError,
-            ValueError,
-            OverflowError,
-            get_user_model().DoesNotExist,
-            ValidationError,
-    ):
-        user = None
-    return user
+def validate_passwords_equality(password1, password2):
+    if password1 != password2:
+        raise ValidationError("Passwords do not match.")
