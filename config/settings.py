@@ -11,6 +11,7 @@ https://docs.djangoproject.com/en/4.1/ref/settings/
 """
 
 from pathlib import Path
+
 from django.core.management.utils import get_random_secret_key
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
@@ -173,3 +174,8 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 AUTH_USER_MODEL = 'users.User'
 DEFAULT_FROM_EMAIL = 'noreply@pysell.ir'
 EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
+
+# totp expiration time in seconds
+TOTP_EXPIRATION_TIME = 120
+
+PASSWORD_RESET_TIMEOUT = 180

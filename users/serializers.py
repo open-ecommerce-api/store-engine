@@ -1,21 +1,67 @@
-from django.contrib.auth import authenticate, get_user_model
-from django.contrib.auth.hashers import check_password
+from django.contrib.auth import authenticate
+from django.contrib.auth import get_user_model
 from django.contrib.auth.password_validation import validate_password
+from django.contrib.auth.views import default_token_generator
 from django.db import IntegrityError
 from rest_framework import serializers
 from rest_framework.authtoken.models import Token
+from rest_framework.exceptions import ValidationError
 
-from users.models import User
+from .utils import validate_passwords_equality
+
+User = get_user_model()
+
+
+class SignupSerializer(serializers.Serializer):
+    """
+        Signup serializer to validate email and password along with its confirmation.
+        - create : to create a user with provided credentials.
+    """
+
+    email = serializers.EmailField(write_only=True)
+    password = serializers.CharField(write_only=True, validators=[validate_password])
+    confirm_password = serializers.CharField(write_only=True)
+
+    def validate(self, data):
+        # the 'confirm_password' must be omitted from data
+        validate_passwords_equality(data['password'], data.pop('confirm_password'))
+        return data
+
+    def create(self, validated_data):
+        try:
+            user = User.objects.create_user(**validated_data)
+        except IntegrityError:
+            raise ValidationError({'email': ['This email address is already taken.']})
+        return user
+
+
+class SignupConfirmSerializer(serializers.Serializer):
+    email = serializers.EmailField(write_only=True)
+    totp = serializers.CharField(write_only=True)
+
+    def validate(self, data):
+        """
+        Serializer validation is used to validate the incoming data before creating or updating an object.
+        """
+        try:
+            user = User.objects.get(email=data['email'])
+        except User.DoesNotExist:
+            raise ValidationError({'email': 'invalid email.'})
+
+        if user.is_active:
+            raise ValidationError({'message': 'Account already activated.'})
+
+        if not user.verify_totp(data['totp']):
+            raise ValidationError({'message': 'Invalid TOTP'})
+
+        return user
 
 
 class SigninSerializer(serializers.Serializer):
     """
-    This code creates a serializer for the signin endpoint (sign-in data).
-    It also includes a validation method that authenticates the user and raises an error if the credentials are invalid
-    or the user is inactive.
+        Signin Serializer to validate user credentials and activity.
     """
-
-    email = serializers.EmailField()
+    email = serializers.EmailField(write_only=True)
     password = serializers.CharField(write_only=True)
 
     def validate(self, data):
@@ -28,50 +74,11 @@ class SigninSerializer(serializers.Serializer):
         checking if two fields are mutually exclusive or if a certain combination of fields is required.
         If the data fails validation, you can raise a `serializers.ValidationError` with an appropriate error message.
         """
-        email = data.get('email')
-        password = data.get('password')
 
-        if email and password:
-            user = authenticate(username=email, password=password)
-            if user:
-                    data['user'] = user
-            else:
-                raise serializers.ValidationError('Unable to log in with provided credentials.')
-        else:
-            raise serializers.ValidationError('Must include "email" and "password".')
-
-        # if it's ok, return valid data
-        return data
-
-
-class SignupSerializer(serializers.Serializer):
-    """
-    The `SignupSerializer` uses the `EmailField` and `CharField` to validate the email and password fields
-    respectively.
-    The `create` method is used to create a new user with the validated data.
-    """
-
-    email = serializers.EmailField()
-    password = serializers.CharField(write_only=True, validators=[validate_password])
-    confirm_password = serializers.CharField(write_only=True)
-
-    def validate(self, data):
-        password = data.get('password')
-        password_confirm = data.pop('confirm_password')
-
-        if password != password_confirm:
-            raise serializers.ValidationError("Passwords do not match.")
-
-        return data
-
-    def create(self, validated_data):
-
-        try:
-            user = get_user_model().objects.create_user(**validated_data)
-            user.save()
-            return user
-        except IntegrityError as e:
-            raise serializers.ValidationError({'email': ['This email address is already taken.']})
+        user = authenticate(username=data['email'], password=data['password'])
+        if not user:
+            raise ValidationError('Unable to log in with provided credentials.')
+        return user
 
 
 class TokenSerializer(serializers.ModelSerializer):
@@ -81,42 +88,42 @@ class TokenSerializer(serializers.ModelSerializer):
 
 
 class PasswordResetSerializer(serializers.Serializer):
-    email = serializers.EmailField()
+    email = serializers.EmailField(write_only=True)
 
     def validate(self, data):
-        if get_user_model().objects.filter(email=data.get('email')).exists():
-            data['user'] = User.objects.get(email=data.get('email'))
-        else:
-            raise serializers.ValidationError("This email address is not associated with any user account.")
-        return data
+        try:
+            user = User.objects.get(email=data['email'], is_active=True)
+        except User.DoesNotExist:
+            raise serializers.ValidationError("This email address is not associated with any active user account.")
+
+        return user
 
 
 class PasswordResetConfirmSerializer(serializers.Serializer):
+    email = serializers.EmailField()
     new_password = serializers.CharField(write_only=True, validators=[validate_password])
     confirm_new_password = serializers.CharField(write_only=True)
 
     def validate(self, data):
 
-        # validate token
         try:
-            data['token'] = Token.objects.get(key=self.context['token'])
-        except Token.DoesNotExist:
+            data['user'] = User.objects.get(email=data['email'], is_active=True)
+        except User.DoesNotExist:
+            raise ValidationError({'email': 'this email is associated with no user'})
+
+        # validate token
+        if not default_token_generator.check_token(data['user'], self.context['token']):
             raise serializers.ValidationError('Invalid password reset.')
 
         # validate new password
-        if data.get('new_password') != data.get('confirm_new_password'):
-            raise serializers.ValidationError("Passwords do not match.")
+        validate_passwords_equality(data['new_password'], data.pop('confirm_new_password'))
 
         return data
 
     def create(self, validated_data):
-        token = validated_data['token']
-        user = token.user
+        user = validated_data['user']
         user.set_password(validated_data['new_password'])
         user.save()
-
-        # Delete the token after password reset
-        token.delete()
         return user
 
 
@@ -129,33 +136,34 @@ class ChangePasswordSerializer(serializers.Serializer):
         user = self.context['user']
 
         # check old password
-        if not check_password(data.get('old_password'), user.password):
-            raise serializers.ValidationError('Invalid password')
+        if not user.check_password(data['old_password']):
+            raise ValidationError('Invalid password')
 
-        # new password should not be the same as old password
-        if check_password(data.get('new_password'), user.password):
-            raise serializers.ValidationError('New password must be different from old password')
-
-        # validate new password
-        if data['new_password'] != data['confirm_new_password']:
-            raise serializers.ValidationError("The new password and confirmation do not match.")
+        validate_passwords_equality(data['new_password'], data.pop('confirm_new_password'))
 
         return data.get('new_password')
 
 
 class ChangeEmailSerializer(serializers.Serializer):
-    email = serializers.EmailField(write_only=True)
+    new_email = serializers.EmailField(write_only=True)
     password = serializers.CharField(write_only=True)
 
     def validate(self, data):
         user = self.context['user']
 
         # check password
-        if not user.check_password(data.get('password')):
+        if not user.check_password(data['password']):
             raise serializers.ValidationError('Invalid password')
 
         # check email uniqueness
-        if User.objects.filter(email=data.get('email')).exists():
+        if User.objects.filter(email=data['new_email']).exists():
             raise serializers.ValidationError('Email already in use')
 
-        return data.get('email')
+        return data['new_email']
+
+
+class TOTPSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = User
+        fields = ('totp',)
+        extra_kwargs = {'totp': {'write_only': True}}
