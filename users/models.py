@@ -11,10 +11,14 @@ from .utils import generate_otp
 
 class User(AbstractUser):
     email = models.EmailField(max_length=255, unique=True)
-    username = models.CharField(max_length=255, blank=False, null=False, unique=True)
+    username = models.CharField(max_length=255, blank=False, null=False)
 
-    totp = models.CharField(max_length=12, null=True)
-    totp_valid_until = models.DateTimeField(default=now)
+    totp = models.CharField(max_length=12, null=True, blank=True)
+
+    totp_valid_until = models.DateTimeField(
+        default=now,
+        help_text="The timestamp of the moment of expiry of the saved token.",
+    )
 
     USERNAME_FIELD = 'email'
 
@@ -29,19 +33,32 @@ class User(AbstractUser):
 
     def save_totp(self, length=6):
         """
-        saves a (default 6-digit) timed based otp for user
+        usage: saves a TOTP and expiration time based on settings for user.
+        Args:
+            length (int): The length of the TOTP code to generate (default: 6).
         """
+
         self.totp = generate_otp(length)
-        self.totp_valid_until = now() + timedelta(seconds=settings.OTP_EXPIRATION)
+        self.totp_valid_until = now() + timedelta(seconds=settings.TOTP_EXPIRATION_TIME)
         self.save()
 
-    def validate_totp(self, otp: str) -> bool:
+    def verify_totp(self, totp):
+        """
+            usage: Verifies a token by content and expiry.
+
+            Args:
+               totp (str): The TOTP code to validate.
+            Returns:
+               bool: True if the TOTP is valid and has not expired, False otherwise.
+        """
+        _now = now()
         if (
                 (self.totp is not None)
-                and (self.totp == otp)
-                and (now() < self.totp_valid_until)
+                and (self.totp == totp)
+                and (_now < self.totp_valid_until)
         ):
             self.totp = None
-            self.totp_valid_until = now()
+            self.totp_valid_until = _now
+            self.save()
             return True
         return False
