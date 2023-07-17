@@ -24,6 +24,7 @@ urlpatterns = [
     path('develop/', admin.site.urls),
     path('users/', include('apps.users.urls'), name="users"),
     path('admin/', include('apps.attributes.urls'), name="attributes"),
+    path('admin/', include('apps.products.urls'), name="products"),
 
     # need to generate swagger-ui
     path("api/schema/", SpectacularAPIView.as_view(), name="schema"),
