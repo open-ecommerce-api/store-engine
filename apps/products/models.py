@@ -1,6 +1,42 @@
 from django.db import models
 
 
+class ProductQuerySet(models.QuerySet):
+
+    def create_product(self, name, description, options):
+        """
+        [*] get selected attributes
+        [*] generate options
+        [*] save options
+
+        [] generate variants: by options combination, max is 3 options
+        [] save variants
+        """
+
+        # create a product
+        product = self.model.objects.create(
+            name=name,
+            description=description,
+        )
+
+        # create product options
+        for option in options:
+            product_option = ProductOption.objects.create(
+                product=product,
+                name=option['name'],
+            )
+
+            for item in option['items']:
+                ProductOptionItem.objects.create(
+                    option=product_option,
+                    item=item,
+                )
+
+        # create product variants
+
+        return product
+
+
 class Product(models.Model):
     """
     The Product resource lets you update and create products in a merchant's store.
@@ -12,24 +48,31 @@ class Product(models.Model):
     # A description of the product. Supports HTML formatting.
     description = models.TextField()
 
-    # the status of the product. valid values: "active, archived, draft"
-    # `active`: The product is ready to sell and is available to customers on the online store, sales channels,
-    # and apps. by default, existing products are set to active.
-    # `archived`: The product is no longer being sold and isn't available to customers on sales channels and apps.
-    # `draft`: The product isn't ready to sell and is unavailable to customers on sales channels and apps.
-    status = models.CharField(default=False)
+    STATUS_CHOICES = [
+
+        # The product is ready to sell and is available to customers on the online store, sales channels, and apps.
+        ('active', 'Active'),
+
+        # The product is no longer being sold and isn't available to customers on sales channels and apps.
+        ('archived', 'Archived'),
+
+        # The product isn't ready to sell and is unavailable to customers on sales channels and apps.
+        ('draft', 'Draft'),
+    ]
+    status = models.CharField(max_length=10, choices=STATUS_CHOICES, default='draft')
 
     # the date and time when the product was created.
     created_at = models.DateTimeField(auto_now_add=True)
 
     # The date and time when the product was last modified.
     # A product's updated_at value can change for different reasons.
-    # For example, if an order is placed for a product that has inventory tracking set up,
-    # then the inventory adjustment is counted as an update.
+    # For example, the inventory adjustment is counted as an update.
     updated_at = models.DateTimeField(auto_now=True)
 
     # The date and time when the product was published.
     published_at = models.DateTimeField(auto_now=True)
+
+    objects = ProductQuerySet.as_manager()
 
     def __str__(self):
         return self.name
@@ -42,7 +85,10 @@ class ProductOption(models.Model):
     Each product can have a maximum of 3 options, such as Size, Color, and Material.
     """
     product = models.ForeignKey(Product, on_delete=models.CASCADE)
-    name = models.CharField(max_length=255, unique=True)
+    name = models.CharField(max_length=255)
+
+    class Meta:
+        unique_together = ('product', 'name')
 
     def __str__(self):
         return self.name
@@ -79,37 +125,6 @@ class ProductVariant(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
-
 # class ProductMedia(models.Model):
 #     product = models.ForeignKey(Product, on_delete=models.CASCADE)
 #     file = models.ImageField(upload_to='product_media')
-
-class ProductManager:
-    """
-    [] create a variable product
-    [] generate option base on saved attributes
-    [] generate variants by options combination, max is 3 options
-    [] if admin wants to edit the options, so how to manage variants if it is in the order list?
-    []
-    """
-
-    def create_product(self, name):
-        product = Product.objects.create(name=name)
-
-        # get attributes
-        # generate options
-        # save options
-        # generate variants
-        # save variants
-
-    def retrieve_product(self):
-        ...
-
-    def delete_product(self):
-        ...
-
-    def update_product(self):
-        ...
-
-    def create_options(self, product, attributes):
-        ...
