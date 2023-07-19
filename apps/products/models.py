@@ -3,33 +3,33 @@ from django.db import models
 
 class ProductQuerySet(models.QuerySet):
 
-    def create_product(self, name, description, options):
+    def create_product(self, **data):
         """
-        [*] get selected attributes
-        [*] generate options
-        [*] save options
+        todo[*] get selected attributes
+        todo[*] generate options
+        todo[*] save options
 
-        [] generate variants: by options combination, max is 3 options
-        [] save variants
+        todo[] generate variants: by options combination, max is 3 options
+        todo[] save variants
         """
+
+        # pop options, because the Product model doesn't have `options` field
+        options = data.pop('options')
 
         # create a product
-        product = self.model.objects.create(
-            name=name,
-            description=description,
-        )
+        product = self.model.objects.create(**data)
 
         # create product options
         for option in options:
             product_option = ProductOption.objects.create(
                 product=product,
-                name=option['name'],
+                option_name=option['option_name'],
             )
 
             for item in option['items']:
                 ProductOptionItem.objects.create(
                     option=product_option,
-                    item=item,
+                    item_name=item,
                 )
 
         # create product variants
@@ -43,10 +43,10 @@ class Product(models.Model):
     You can use product variants with the Product resource to create or update different versions of the same product.
     You can also add or update product images.
     """
-    name = models.CharField(max_length=255)
+    product_name = models.CharField(max_length=255)
 
     # A description of the product. Supports HTML formatting.
-    description = models.TextField()
+    description = models.TextField(blank=True)
 
     STATUS_CHOICES = [
 
@@ -75,7 +75,7 @@ class Product(models.Model):
     objects = ProductQuerySet.as_manager()
 
     def __str__(self):
-        return self.name
+        return self.product_name
 
 
 class ProductOption(models.Model):
@@ -85,24 +85,24 @@ class ProductOption(models.Model):
     Each product can have a maximum of 3 options, such as Size, Color, and Material.
     """
     product = models.ForeignKey(Product, on_delete=models.CASCADE)
-    name = models.CharField(max_length=255)
+    option_name = models.CharField(max_length=255)
 
     class Meta:
-        unique_together = ('product', 'name')
+        unique_together = ('product', 'option_name')
 
     def __str__(self):
-        return self.name
+        return self.option_name
 
 
 class ProductOptionItem(models.Model):
     option = models.ForeignKey(ProductOption, on_delete=models.CASCADE)
-    item = models.CharField(max_length=255)
+    item_name = models.CharField(max_length=255)
 
     class Meta:
-        unique_together = ('option', 'item')
+        unique_together = ('option', 'item_name')
 
     def __str__(self):
-        return self.item
+        return self.item_name
 
 
 class ProductVariant(models.Model):

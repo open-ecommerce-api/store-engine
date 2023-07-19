@@ -8,10 +8,9 @@ from rest_framework.response import Response
 from apps.products.models import Product, ProductQuerySet
 from apps.products import serializers
 
-"""
-[] write a test for POST product
-[] if admin wants to edit the options, so how to manage variants if it is in the order list?
-"""
+
+# todo[] write a test for POST product.
+# todo[] if admin wants to edit the options, so how to manage variants if it is in the order list?
 
 
 @extend_schema_view(
@@ -52,10 +51,6 @@ class ProductView(viewsets.ModelViewSet):
         serializer.is_valid(raise_exception=True)
         payload = serializer.validated_data
 
-        Product.objects.create_product(
-            name=payload['name'],
-            description=payload['description'],
-            options=payload['options'],
-        )
+        Product.objects.create_product(**payload)
 
         return Response(serializer.data, status=status.HTTP_201_CREATED)
