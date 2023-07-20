@@ -25,7 +25,8 @@ class ProductOptionSerializer(serializers.ModelSerializer):
 
 
 class ProductSerializer(serializers.ModelSerializer):
-    options = ProductOptionSerializer(many=True)
+    options = ProductOptionSerializer(many=True, required=False)
+    status = serializers.CharField(max_length=10, allow_blank=True, required=False)  # Set allow_blank=True
 
     class Meta:
         model = Product
