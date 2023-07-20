@@ -13,28 +13,53 @@ class ProductQuerySet(models.QuerySet):
         todo[] save variants
         """
 
-        # pop options, because the Product model doesn't have `options` field
-        options = data.pop('options')
+        try:
+            # pop options, because the Product model doesn't have `options` field
+            options = data.pop('options')
+        except KeyError:
+            options = []
 
         # create a product
         product = self.model.objects.create(**data)
 
         # create product options
-        for option in options:
-            product_option = ProductOption.objects.create(
-                product=product,
-                option_name=option['option_name'],
-            )
-
-            for item in option['items']:
-                ProductOptionItem.objects.create(
-                    option=product_option,
-                    item_name=item,
-                )
+        product_options = self.__create_product_options(product, options)
 
         # create product variants
 
-        return product
+        return product, product_options
+
+    def __create_product_options(self, product, options):
+        product_options = []
+
+        if product_options:
+            for option in options:
+
+                new_option = ProductOption.objects.create(
+                    product=product,
+                    option_name=option['option_name'],
+                )
+
+                items = []
+                for item in option['items']:
+                    new_item = ProductOptionItem.objects.create(
+                        option=new_option,
+                        item_name=item,
+                    )
+                    items.append({
+                        'item_id': new_item.id,
+                        'item_name': new_item.item_name
+                    })
+
+                product_options.append({
+                    'options_id': new_option.id,
+                    'option_name': new_option.option_name,
+                    'items': items
+                })
+        else:
+            product_options = None
+
+        return product_options
 
 
 class Product(models.Model):
@@ -46,6 +71,7 @@ class Product(models.Model):
     product_name = models.CharField(max_length=255)
 
     # A description of the product. Supports HTML formatting.
+    # todo [] makesure the description can save and retrieve the html content
     description = models.TextField(blank=True)
 
     STATUS_CHOICES = [
@@ -67,15 +93,21 @@ class Product(models.Model):
     # The date and time when the product was last modified.
     # A product's updated_at value can change for different reasons.
     # For example, the inventory adjustment is counted as an update.
-    updated_at = models.DateTimeField(auto_now=True)
+    updated_at = models.DateTimeField(blank=True, null=True)
 
     # The date and time when the product was published.
-    published_at = models.DateTimeField(auto_now=True)
+    published_at = models.DateTimeField(blank=True, null=True)
 
     objects = ProductQuerySet.as_manager()
 
     def __str__(self):
         return self.product_name
+
+    def save(self, *args, **kwargs):
+        # Check if the status field is empty or None or other names
+        if not self.status or self.status != ('active', 'archived', 'draft'):
+            self.status = 'draft'
+        super().save(*args, **kwargs)
 
 
 class ProductOption(models.Model):
