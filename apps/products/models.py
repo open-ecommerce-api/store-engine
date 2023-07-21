@@ -1,5 +1,4 @@
-from django.db import models, IntegrityError
-from django.shortcuts import get_object_or_404
+from django.db import models
 
 
 class ProductQuerySet(models.QuerySet):
@@ -54,17 +53,17 @@ class ProductQuerySet(models.QuerySet):
                         'item_id': existing_item.id,
                         'item_name': existing_item.item_name
                     })
-            return self.__get_product_options(product)
+            return self.__get_product_options(product.id)
         else:
             return None
 
-    def __get_product_options(self, product):
+    def __get_product_options(self, product_id):
         """
         Get all options of a product
         # todo[] return none or a product_options list
         """
         product_options = []
-        options = ProductOption.objects.filter(product=product)
+        options = ProductOption.objects.filter(product=product_id)
         for option in options:
             items = ProductOptionItem.objects.filter(option=option)
             product_options.append({
