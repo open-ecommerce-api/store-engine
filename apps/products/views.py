@@ -1,11 +1,9 @@
-from django.shortcuts import get_object_or_404
 from drf_spectacular.utils import extend_schema, extend_schema_view
-from rest_framework import viewsets, status, serializers
-from rest_framework.decorators import action
+from rest_framework import viewsets, status
 from rest_framework.permissions import IsAdminUser
 from rest_framework.response import Response
 
-from apps.products.models import Product, ProductOption
+from apps.products.models import Product
 from apps.products import serializers
 
 
@@ -49,7 +47,7 @@ class ProductView(viewsets.ModelViewSet):
     def create(self, request, *args, **kwargs):
         serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
-        
+
         payload = serializer.validated_data
         product, options = Product.objects.create_product(**payload)
 
