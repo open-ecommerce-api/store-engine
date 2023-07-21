@@ -1,5 +1,4 @@
 from rest_framework import serializers
-from rest_framework.validators import UniqueValidator
 
 from apps.products.models import Product, ProductOption, ProductOptionItem, ProductVariant
 
@@ -16,17 +15,11 @@ class ProductOptionSerializer(serializers.ModelSerializer):
     class Meta:
         model = ProductOption
         fields = ['option_name', 'items']
-        # validators = [
-        #     UniqueValidator(
-        #         queryset=ProductOption.objects.all(),
-        #         message="A product option with this name already exists."
-        #     )
-        # ]
 
 
 class ProductSerializer(serializers.ModelSerializer):
     options = ProductOptionSerializer(many=True, required=False)
-    status = serializers.CharField(max_length=10, allow_blank=True, required=False)  # Set allow_blank=True
+    status = serializers.CharField(max_length=10, allow_blank=True, required=False)
 
     class Meta:
         model = Product
