@@ -1,4 +1,5 @@
-from django.db import models
+from django.db import models, IntegrityError
+from django.shortcuts import get_object_or_404
 
 
 class ProductQuerySet(models.QuerySet):
@@ -30,35 +31,47 @@ class ProductQuerySet(models.QuerySet):
         return product, product_options
 
     def __create_product_options(self, product, options):
-        product_options = []
+        """
+        Create new option if it doesn't exist and update its items
+        """
 
-        if product_options:
+        if options:
             for option in options:
-
-                new_option = ProductOption.objects.create(
+                # Get or create the product option
+                existing_option, _ = ProductOption.objects.get_or_create(
                     product=product,
                     option_name=option['option_name'],
                 )
 
+                # Get or create the product option items
                 items = []
                 for item in option['items']:
-                    new_item = ProductOptionItem.objects.create(
-                        option=new_option,
+                    existing_item, _ = ProductOptionItem.objects.get_or_create(
+                        option=existing_option,
                         item_name=item,
                     )
                     items.append({
-                        'item_id': new_item.id,
-                        'item_name': new_item.item_name
+                        'item_id': existing_item.id,
+                        'item_name': existing_item.item_name
                     })
-
-                product_options.append({
-                    'options_id': new_option.id,
-                    'option_name': new_option.option_name,
-                    'items': items
-                })
+            return self.__get_product_options(product)
         else:
-            product_options = None
+            return None
 
+    def __get_product_options(self, product):
+        """
+        Get all options of a product
+        # todo[] return none or a product_options list
+        """
+        product_options = []
+        options = ProductOption.objects.filter(product=product)
+        for option in options:
+            items = ProductOptionItem.objects.filter(option=option)
+            product_options.append({
+                'options_id': option.id,
+                'option_name': option.option_name,
+                'items': [{'item_id': item.id, 'item_name': item.item_name} for item in items]
+            })
         return product_options
 
 
