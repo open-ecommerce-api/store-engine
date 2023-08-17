@@ -8,6 +8,7 @@ class ProductQuerySet(models.QuerySet):
         todo[*] get selected attributes
         todo[*] generate options
         todo[*] save options
+        todo[] warning product by same name
 
         todo[] generate variants: by options combination, max is 3 options
         todo[] save variants
@@ -72,6 +73,13 @@ class ProductQuerySet(models.QuerySet):
                 'items': [{'item_id': item.id, 'item_name': item.item_name} for item in items]
             })
         return product_options
+
+    def retrieve_options(self, product_id):
+
+        return self.__get_product_options(product_id)
+
+    def retrieve_variants(self):
+        ...
 
 
 class Product(models.Model):
