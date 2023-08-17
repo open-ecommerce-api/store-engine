@@ -1,3 +1,4 @@
+from django.shortcuts import get_object_or_404
 from drf_spectacular.utils import extend_schema, extend_schema_view
 from rest_framework import viewsets, status
 from rest_framework.permissions import IsAdminUser
@@ -44,14 +45,47 @@ class ProductView(viewsets.ModelViewSet):
     permission_classes = [IsAdminUser]
     http_method_names = ['get', 'post', 'put', 'delete']
 
+    def get_serializer_class(self):
+        if self.action == 'create':
+            return serializers.ProductCreateSerializer
+        return self.serializer_class
+
     def create(self, request, *args, **kwargs):
+        # todo[] create variants
+
         serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
 
         payload = serializer.validated_data
         product, options = Product.objects.create_product(**payload)
 
-        response_data = {
+        response_body = {
+            'product_id': product.id,
+            'product_name': product.product_name,
+            'description': product.description,
+            'status': product.status,
+            'created_at': product.created_at.strftime('%Y-%m-%d %H:%M:%S'),
+            'options': options
+        }
+
+        return Response(response_body, status=status.HTTP_201_CREATED)
+
+    def retrieve(self, request, pk=None, **kwargs):
+        # todo[] get a product
+        # todo[] get options of product
+        # todo[] get variant of product
+        # todo[] combine all and return in response
+
+        try:
+            pk = int(pk)
+        except ValueError:
+            return Response({'detail': 'product id should be integer'}, status=status.HTTP_400_BAD_REQUEST)
+
+        product = get_object_or_404(Product, pk=pk)
+        options = Product.objects.retrieve_options(product)
+        # variants= Product.objects.retrieve_variants(product)
+
+        response_body = {
             'product_id': product.id,
             'product_name': product.product_name,
             'description': product.description,
@@ -62,4 +96,19 @@ class ProductView(viewsets.ModelViewSet):
             'options': options
         }
 
-        return Response(response_data, status=status.HTTP_201_CREATED)
+        return Response(response_body, status=status.HTTP_200_OK)
+
+    # product, options, variants = Product.objects.get(**payload)
+    #
+    # response_body = {
+    #     'product_id': product.id,
+    #     'product_name': product.product_name,
+    #     'description': product.description,
+    #     'status': product.status,
+    #     'created_at': product.created_at,
+    #     'updated_at': product.updated_at,
+    #     'published_at': product.published_at,
+    #     'options': options
+    # }
+    #
+    # return Response(response_body, status=status.HTTP_200_OK)
