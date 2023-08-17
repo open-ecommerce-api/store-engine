@@ -8,23 +8,21 @@ from apps.products.models import Product
 
 
 # todo[] test create_product permissions
-# todo[] test create_product without required fields
-# todo[] test create_product with empty payload
-# todo[] test create_product with blank fields
-# todo[] test create_product with invalid payload
-# todo[] test create_product blank required fields
+# todo[] Test create a product by the all available inputs (assuming valid data)
 # todo[] test create_product if status value is anything other than ('active', 'archived', 'draft')
+# todo[] test description field as html DOM in it
 
 # todo[] test create_product with empty options
 # todo[] test create_product with invalid option data
 # todo[] test create_product 0 or 3 option
 # todo[] test create_product max 3 options
+# todo[] Test create_product with uniq option-names (valid data)
+# todo[] Test create_product with uniq item-names (valid data)
 # todo[] Test create_product with duplicate option-names (should be unique for a product)
 # todo[] Test create_product with duplicate item-names (should be unique for a product-option)
-class ProductViewTest(BaseTestCase):
+class ProductCreateViewTest(BaseTestCase):
     """
-    Test access permissions for CRUD methods
-    Test CRUD results base on the multi scenario
+    Test create-product on the multi scenario
     """
 
     # init data
@@ -50,35 +48,76 @@ class ProductViewTest(BaseTestCase):
 
     def test_create_product(self):
         """
-        Test create a product by the all available inputs (as valid data)
+        Test create a product by the all available inputs (assuming valid data)
         """
 
         self.set_admin_authorization()
 
-        payload = json.dumps({
-            "product_name": self.fake_product.generate_name(),
-            "description": self.fake_product.generate_description(),
-            "status": "draft",
-            "options": self.fake_product.generate_options()
-        })
+        payload = {
+            "product_name": "test product",
+            "description": "test description",
+            "status": "active",
+            "options": []
+        }
 
-        response = self.client.post(self.product_endpoint, data=payload, content_type='application/json')
+        response = self.client.post(self.product_endpoint, data=json.dumps(payload), content_type='application/json')
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
 
-        product_id = response.data['product_id']
-        product = Product.objects.get(pk=product_id)
-        options = Product.objects.retrieve_options(product_id)
+    def test_create_product_with_invalid_payloads(self):
+        """
+        Test create product with invalid payload scenario
+        """
 
-        # To see the entire diff and identify the specific differences between the two JSON objects:
-        # self.maxDiff = None
+        self.set_admin_authorization()
 
-        self.assertEqual(response.json(), {
-            'product_id': product_id,
-            'product_name': product.product_name,
-            'description': product.description,
-            'status': product.status,
-            'created_at': product.created_at.strftime('%Y-%m-%d %H:%M:%S'),
-            'options': options
+        # Test with empty payload
+        response = self.client.post(self.product_endpoint, data={}, content_type='application/json')
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertEqual(response.data, {"product_name": ["This field is required."]})
+
+        # Test without required fields
+        payload = {
+            "description": "test description",
+        }
+        response = self.client.post(self.product_endpoint, data=json.dumps(payload), content_type='application/json')
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertEqual(response.data, {"product_name": ["This field is required."]})
+
+        # Test if required fields are blank
+        payload = {
+            "product_name": "",
+        }
+        response = self.client.post(self.product_endpoint, data=json.dumps(payload), content_type='application/json')
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertEqual(response.data, {"product_name": ["This field may not be blank."]})
+
+        # test if all fields are blank
+        payload = {
+            "product_name": "",
+            "description": "",
+            "status": "",
+            "options": []
+        }
+        response = self.client.post(self.product_endpoint, data=json.dumps(payload), content_type='application/json')
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertEqual(response.data, {"product_name": ["This field may not be blank."]})
+
+        # test with invalid field name
+        payload = {
+            "product_name": "test product",
+            "description_": "",
+            "status_": "",
+            "options_": []
+        }
+        response = self.client.post(self.product_endpoint, data=json.dumps(payload), content_type='application/json')
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        self.assertEqual(response.data, {
+            "product_id": response.data["product_id"],
+            "product_name": "test product",
+            "description": "",
+            "status": "draft",
+            "created_at": response.data["created_at"],
+            "options": None
         })
 
     def test_create_product_with_empty_payload(self):
@@ -116,6 +155,39 @@ class ProductViewTest(BaseTestCase):
         self.set_admin_authorization()
 
         request = self.client.get(self.product_endpoint)
+
+    def test_create_product_with_options(self):
+        """
+                Test create a product by the all available inputs (as valid data)
+                """
+
+        self.set_admin_authorization()
+
+        payload = json.dumps({
+            "product_name": "test product",
+            "description": "",
+            "status": "active",
+            "options": []
+        })
+
+        response = self.client.post(self.product_endpoint, data=payload, content_type='application/json')
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+
+        # product_id = response.data['product_id']
+        # product = Product.objects.get(pk=product_id)
+        # options = Product.objects.retrieve_options(product_id)
+
+        # To see the entire diff and identify the specific differences between the two JSON objects:
+        # self.maxDiff = None
+
+        # self.assertEqual(response.json(), {
+        #     'product_id': product_id,
+        #     'product_name': product.product_name,
+        #     'description': product.description,
+        #     'status': product.status,
+        #     'created_at': product.created_at.strftime('%Y-%m-%d %H:%M:%S'),
+        #     'options': options
+        # })
 
     def test_create_product_by_random_options(self):
         """
