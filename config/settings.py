@@ -40,6 +40,7 @@ INSTALLED_APPS = [
     # External Packages
     'rest_framework',
     'drf_spectacular',
+    # 'drf_spectacular_sidecar',
     'rest_framework.authtoken',
 
     # Made by the team
@@ -63,6 +64,11 @@ REST_FRAMEWORK = {
 }
 
 SPECTACULAR_SETTINGS = {
+    # ------ for work offline (have no direct access to the internet ------
+    # 'SWAGGER_UI_DIST': 'SIDECAR',  # shorthand to use the sidecar instead
+    # 'SWAGGER_UI_FAVICON_HREF': 'SIDECAR',
+    # 'REDOC_DIST': 'SIDECAR',
+    # ---------------------------------------------------------------------
     "TITLE": "Store Engine API",
     "DESCRIPTION": "An ecommerce backend-API created using Django and DRF (Django Rest Framework).",
     "VERSION": "0.1.0",
