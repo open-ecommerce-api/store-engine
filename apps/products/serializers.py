@@ -17,10 +17,17 @@ class ProductOptionSerializer(serializers.ModelSerializer):
         fields = ['option_name', 'items']
 
 
-class ProductSerializer(serializers.ModelSerializer):
+class ProductCreateSerializer(serializers.ModelSerializer):
     options = ProductOptionSerializer(many=True, required=False)
     status = serializers.CharField(max_length=10, allow_blank=True, required=False)
 
     class Meta:
         model = Product
         fields = ['product_name', 'description', 'status', 'options']
+
+
+class ProductSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Product
+        # fields = '__all__'
+        fields = ['id']
