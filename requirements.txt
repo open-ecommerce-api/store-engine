@@ -3,6 +3,7 @@ attrs==23.1.0
 Django==4.2.4
 djangorestframework==3.14.0
 drf-spectacular==0.26.4
+drf-spectacular-sidecar==2023.8.1
 Faker==19.3.0
 inflection==0.5.1
 jsonschema==4.19.0
