@@ -1,3 +1,5 @@
+from typing import Optional, List
+
 from django.db import models
 
 
@@ -5,11 +7,7 @@ class ProductQuerySet(models.QuerySet):
 
     def create_product(self, **data):
         """
-        todo[*] get selected attributes
-        todo[*] generate options
-        todo[*] save options
         todo[] warning product by same name
-
         todo[] generate variants: by options combination, max is 3 options
         todo[] save variants
         """
@@ -32,7 +30,8 @@ class ProductQuerySet(models.QuerySet):
 
     def __create_product_options(self, product, options):
         """
-        Create new option if it doesn't exist and update its items
+        Create new option if it doesn't exist and update its items,
+        and ensures that options are uniq in a product and also items in each option are uniq.
         """
 
         if options:
@@ -54,14 +53,13 @@ class ProductQuerySet(models.QuerySet):
                         'item_id': existing_item.id,
                         'item_name': existing_item.item_name
                     })
-            return self.__get_product_options(product.id)
+            return self.retrieve_options(product.id)
         else:
             return None
 
-    def __get_product_options(self, product_id):
+    def retrieve_options(self, product_id) -> Optional[List[dict]]:
         """
         Get all options of a product
-        # todo[] return none or a product_options list
         """
         product_options = []
         options = ProductOption.objects.filter(product=product_id)
@@ -72,11 +70,10 @@ class ProductQuerySet(models.QuerySet):
                 'option_name': option.option_name,
                 'items': [{'item_id': item.id, 'item_name': item.item_name} for item in items]
             })
-        return product_options
-
-    def retrieve_options(self, product_id):
-
-        return self.__get_product_options(product_id)
+        if product_options:
+            return product_options
+        else:
+            return None
 
     def retrieve_variants(self):
         ...
