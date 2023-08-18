@@ -1,26 +1,16 @@
-import random
 from rest_framework import status
 from rest_framework.utils import json
 
 from apps.attributes.tests.base_test_case import BaseTestCase
 from apps.products.tests.faker.data import FakeProduct
-from apps.products.models import Product
 
 
 # todo[] test create_product permissions
 # todo[] Test create a product by the all available inputs (assuming valid data)
-# todo[] test create_product if status value is anything other than ('active', 'archived', 'draft')
 # todo[] test description field as html DOM in it
 
-# todo[] test create_product with empty options
-# todo[] test create_product with invalid option data
-# todo[] test create_product 0 or 3 option
-# todo[] test create_product max 3 options
-# todo[] Test create_product with uniq option-names (valid data)
-# todo[] Test create_product with uniq item-names (valid data)
-# todo[] Test create_product with duplicate option-names (should be unique for a product)
-# todo[] Test create_product with duplicate item-names (should be unique for a product-option)
-class ProductCreateViewTest(BaseTestCase):
+
+class CreateViewTest(BaseTestCase):
     """
     Test create-product on the multi scenario
     """
@@ -63,7 +53,19 @@ class ProductCreateViewTest(BaseTestCase):
         response = self.client.post(self.product_endpoint, data=json.dumps(payload), content_type='application/json')
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
 
-    def test_create_product_with_invalid_payloads(self):
+        # product_id = response.data['product_id']
+        # product = Product.objects.get(pk=product_id)
+        # options = Product.objects.retrieve_options(product_id)
+        # self.assertEqual(response.json(), {
+        #     'product_id': product_id,
+        #     'product_name': product.product_name,
+        #     'description': product.description,
+        #     'status': product.status,
+        #     'created_at': product.created_at.strftime('%Y-%m-%d %H:%M:%S'),
+        #     'options': options
+        # })
+
+    def test_with_invalid_payloads(self):
         """
         Test create product with invalid payload scenario
         """
@@ -71,7 +73,7 @@ class ProductCreateViewTest(BaseTestCase):
         self.set_admin_authorization()
 
         # Test with empty payload
-        response = self.client.post(self.product_endpoint, data={}, content_type='application/json')
+        response = self.client.post(self.product_endpoint, data=json.dumps({}), content_type='application/json')
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
         self.assertEqual(response.data, {"product_name": ["This field is required."]})
 
@@ -120,160 +122,270 @@ class ProductCreateViewTest(BaseTestCase):
             "options": None
         })
 
-    def test_create_product_with_empty_payload(self):
-        ...
-
-    def test_create_product_with_blank_fields(self):
-        ...
-
-    def test_create_product_with_invalid_payload(self):
-        ...
-
-    def test_create_product_without_required_fields(self):
-        ...
-
-    def test_create_product_just_required_field(self):
-        ...
-
-    def test_create_product_with_duplicate_option_names(self):
-        ...
-
-    def test_create_product_with_duplicate_item_names(self):
-        ...
-
-    def test_save_with_valid_status(self):
-        ...
-
-    def test_save_with_invalid_status(self):
-        ...
-
-    def test_retrieve_product_details(self):
+    def test_with_invalid_status(self):
         """
-        Test retrieve a single product details
+        Test create a product if status value is anything other than ('active', 'archived', 'draft')
         """
 
         self.set_admin_authorization()
 
-        request = self.client.get(self.product_endpoint)
-
-    def test_create_product_with_options(self):
-        """
-                Test create a product by the all available inputs (as valid data)
-                """
-
-        self.set_admin_authorization()
-
-        payload = json.dumps({
+        payload = {
             "product_name": "test product",
-            "description": "",
-            "status": "active",
+            "status": "invalid"
+        }
+
+        response = self.client.post(self.product_endpoint, data=json.dumps(payload), content_type='application/json')
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        self.assertEqual(response.data['status'], "draft")
+
+        payload = {
+            "product_name": "test product",
+            "status": "invalid_invalid"
+        }
+
+        response = self.client.post(self.product_endpoint, data=json.dumps(payload), content_type='application/json')
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertEqual(response.data, {"status": ["Ensure this field has no more than 10 characters."]})
+
+    def test_with_uniq_options(self):
+        """
+        Test create product with uniq option-names (valid data)
+        Test create product with uniq item-names (valid data)
+        """
+
+        self.set_admin_authorization()
+
+        # test with 0 or 3 option
+        payload = {
+            "product_name": "test product",
+            "options": self.fake_product.generate_uniq_options()
+        }
+        response = self.client.post(self.product_endpoint, data=json.dumps(payload), content_type='application/json')
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+
+    def test_with_max3_options(self):
+        """
+        Test create a product by more than three options
+        """
+
+        self.set_admin_authorization()
+
+        payload = {
+            "product_name": "test product",
+            "options": self.fake_product.generate_uniq_options_more_than_tree()
+        }
+        response = self.client.post(self.product_endpoint, data=json.dumps(payload), content_type='application/json')
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertEqual(response.data, {"options": ["A product can have a maximum of 3 options."]})
+
+    def test_with_invalid_options(self):
+        """
+        Test create a product with invalid options scenario
+        """
+
+        self.set_admin_authorization()
+
+        payload = {
+            "product_name": "test product",
+            "options": ""
+        }
+        response = self.client.post(self.product_endpoint, data=json.dumps(payload), content_type='application/json')
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+
+        payload = {
+            "product_name": "test product",
+            "options": [
+                {
+                    "option_name": [],
+                    "items": ["a", "a", "b", "c", "d", "c", "b", "a"]
+                }
+            ]
+        }
+        response = self.client.post(self.product_endpoint, data=json.dumps(payload), content_type='application/json')
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+
+        payload = {
+            "product_name": "test product",
+            "options": [
+                {
+                    "option_name": "test",
+                    "items": ""
+                }
+            ]
+        }
+        response = self.client.post(self.product_endpoint, data=json.dumps(payload), content_type='application/json')
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+
+        payload = {
+            "product_name": "test product",
+            "options": [
+                {
+                    "option_name": "test",
+                    "items": [["a", "b"]]
+                }
+            ]
+        }
+        response = self.client.post(self.product_endpoint, data=json.dumps(payload), content_type='application/json')
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+
+        payload = {
+            "product_name": "test product",
+            "options": [{}]
+        }
+        response = self.client.post(self.product_endpoint, data=json.dumps(payload), content_type='application/json')
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+
+        payload = {
+            "product_name": "test product",
+            "options": [
+                {
+                    "option_name": "test",
+                }
+            ]
+        }
+        response = self.client.post(self.product_endpoint, data=json.dumps(payload), content_type='application/json')
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+
+        payload = {
+            "product_name": "test product",
+            "options": [
+                {
+                    "items": "test",
+                }
+            ]
+        }
+        response = self.client.post(self.product_endpoint, data=json.dumps(payload), content_type='application/json')
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+
+        payload = {
+            "product_name": "test product",
+            "options": [
+                {
+                    "items": ["a"],
+                }
+            ]
+        }
+        response = self.client.post(self.product_endpoint, data=json.dumps(payload), content_type='application/json')
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+
+        payload = {
+            "product_name": "test product",
+            "options": [
+                {
+                    "x": "test",
+                    "y": ["a", "b"]
+                }
+            ]
+        }
+        response = self.client.post(self.product_endpoint, data=json.dumps(payload), content_type='application/json')
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+
+    def test_with_blank_option(self):
+        """
+        Test create a product with blank option
+        """
+
+        self.set_admin_authorization()
+        payload = {
+            "product_name": "test product",
             "options": []
-        })
-
-        response = self.client.post(self.product_endpoint, data=payload, content_type='application/json')
+        }
+        response = self.client.post(self.product_endpoint, data=json.dumps(payload), content_type='application/json')
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        self.assertEqual(response.data['options'], None)
 
-        # product_id = response.data['product_id']
-        # product = Product.objects.get(pk=product_id)
-        # options = Product.objects.retrieve_options(product_id)
-
-        # To see the entire diff and identify the specific differences between the two JSON objects:
-        # self.maxDiff = None
-
-        # self.assertEqual(response.json(), {
-        #     'product_id': product_id,
-        #     'product_name': product.product_name,
-        #     'description': product.description,
-        #     'status': product.status,
-        #     'created_at': product.created_at.strftime('%Y-%m-%d %H:%M:%S'),
-        #     'options': options
-        # })
-
-    def test_create_product_by_random_options(self):
+    def test_with_duplicate_options(self):
         """
-        Test create product by admin permission
-        Test the all input fields name as a jason payload and also in the response body
+        Test create_product with duplicate option-names (should be unique for a product)
+        """
+        self.set_admin_authorization()
+
+        payload = {
+            "product_name": self.fake_product.generate_name(),
+            "options": [
+                {
+                    "option_name": "color",
+                    "items": ["a"]
+                },
+                {
+                    "option_name": "size",
+                    "items": ["a"]
+                },
+                {
+                    "option_name": "material",
+                    "items": ["a"]
+                },
+                {
+                    "option_name": "color",
+                    "items": ["a"]
+                }
+            ]
+        }
+        response = self.client.post(self.product_endpoint, data=json.dumps(payload), content_type='application/json')
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        self.assertEqual(len(response.data['options']), 3)
+
+    def test_with_duplicate_items_in_options(self):
+        """
+        Test create product with duplicate item names in options (should be unique for each product-option)
+        """
+        self.set_admin_authorization()
+
+        payload = {
+            "product_name": self.fake_product.generate_name(),
+            "options": [
+                {
+                    "option_name": "color",
+                    "items": ['red', 'green', 'red', 'blue', 'red', 'blue', 'red']
+                },
+                {
+                    "option_name": "size",
+                    "items": ['S', 'M', 'M']
+                },
+                {
+                    "option_name": "material",
+                    "items": ['Cotton', 'Nylon']
+                }
+            ]
+        }
+        response = self.client.post(self.product_endpoint, data=json.dumps(payload), content_type='application/json')
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        options = response.data['options']
+        self.assertEqual(len(options[0]["items"]), 3)
+        self.assertEqual(len(options[1]["items"]), 2)
+
+    def test_remove_empty_options(self):
+        """
+        Test Remove options if its "items" is empty list
         """
 
         self.set_admin_authorization()
 
-        product_name = self.fake_product.generate_name(max_nb_chars=50)
-        description = self.fake_product.generate_description(nb_sentences=50)
-        product_status = "draft"
-        options = self.generate_random_options()
-
-        payload = json.dumps({
-            "product_name": product_name,
-            "description": description,
-            "status": product_status,
-            "options": options
-        })
-
-        response = self.client.post(self.product_endpoint, data=payload, content_type='application/json')
+        payload = {
+            "product_name": "string33",
+            "options": [
+                {
+                    "option_name": "color",
+                    "items": ["c"]
+                },
+                {
+                    "option_name": "color",
+                    "items": ["c"]
+                },
+                {
+                    "option_name": "material",
+                    "items": ["m"]
+                },
+                {
+                    "option_name": "size",
+                    "items": ["s"]
+                },
+                {
+                    "option_name": "style",
+                    "items": []
+                },
+            ]
+        }
+        response = self.client.post(self.product_endpoint, data=json.dumps(payload), content_type='application/json')
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
-
-        # verify response body
-        # self.assertEqual(response.json(), {
-        #     "product_name": product_name,
-        #     "description": description,
-        #     "status": product_status,
-        #     "options": options
-        # })
-
-    def test_create_product_invalid_payload(self):
-
-        self.set_admin_authorization()
-
-        # test with empty payload
-        payload = json.dumps({})
-        response = self.client.post(self.product_endpoint, data=payload, content_type='application/json')
-        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
-        self.assertEqual(response.json(), {
-            "product_name": ["This field is required."]
-        })
-
-        # test with blank fields
-        payload = json.dumps({
-            "product_name": ""
-        })
-        response = self.client.post(self.product_endpoint, data=payload, content_type='application/json')
-        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
-        self.assertEqual(response.data, {
-            "product_name": ["This field may not be blank."]
-        })
-
-    def generate_random_options(self):
-
-        selected_options = random.sample(self.options, random.randint(0, 3))
-
-        # Select items based on the selected options
-        if len(selected_options) > 0:
-            selected_items = []
-            for option in selected_options:
-                match option:
-                    case 'color':
-                        option1 = {
-                            "option_name": option,
-                            "items": random.sample(self.option_color_items, random.randint(1, 5))
-
-                        }
-                        selected_items.append(option1)
-
-                    case 'size':
-                        option2 = {
-                            "option_name": option,
-                            "items": random.sample(self.option_size_items, random.randint(1, 5))
-
-                        }
-                        selected_items.append(option2)
-                    case 'material':
-                        option3 = {
-                            "option_name": option,
-                            "items": random.sample(self.option_material_items, random.randint(1, 5))
-
-                        }
-                        selected_items.append(option3)
-
-            return selected_items
-        else:
-            return []
+        self.assertEqual(len(response.data['options']), 3)
