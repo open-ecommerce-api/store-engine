@@ -95,6 +95,18 @@ class FakeProduct:
             }
         ]
 
+    def generate_uniq_small_options(self):
+        return [
+            {
+                "option_name": "color",
+                "items": self.option_color_items[:1]
+            },
+            {
+                "option_name": "size",
+                "items": self.option_size_items[:1]
+            }
+        ]
+
     def generate_random_options(self):
 
         selected_options = random.sample(self.options, random.randint(0, 3))
