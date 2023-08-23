@@ -1,61 +1,71 @@
+from itertools import product as options_combination
 from typing import Optional, List
 
 from django.db import models
+from djmoney.models.fields import MoneyField
 
 
 class ProductQuerySet(models.QuerySet):
+    product = None
+    options = []
+    options_data = []
+    variants = []
 
     def create_product(self, **data):
         """
-        todo[] warning product by same name
         todo[] generate variants: by options combination, max is 3 options
-        todo[] save variants
         """
 
         try:
             # pop options, because the Product model doesn't have `options` field
-            options = data.pop('options')
+            self.options_data = data.pop('options')
         except KeyError:
-            options = []
+            ...
 
         # create a product
-        product = self.model.objects.create(**data)
+        self.product = self.model.objects.create(**data)
 
         # create product options
-        product_options = self.__create_product_options(product, options)
+        self.options = self.__create_product_options()
 
         # create product variants
+        self.variants = self.__create_variants()
 
-        return product, product_options
+        return self.product, self.options, self.variants
 
-    def __create_product_options(self, product, options):
+    def __create_product_options(self):
         """
         Create new option if it doesn't exist and update its items,
         and ensures that options are uniq in a product and also items in each option are uniq.
         """
 
-        if options:
-            for option in options:
-                # Get or create the product option
-                existing_option, _ = ProductOption.objects.get_or_create(
-                    product=product,
-                    option_name=option['option_name'],
-                )
-
-                # Get or create the product option items
-                items = []
+        if self.options_data:
+            for option in self.options_data:
+                new_option = ProductOption.objects.create(product=self.product, option_name=option['option_name'])
                 for item in option['items']:
-                    existing_item, _ = ProductOptionItem.objects.get_or_create(
-                        option=existing_option,
-                        item_name=item,
-                    )
-                    items.append({
-                        'item_id': existing_item.id,
-                        'item_name': existing_item.item_name
-                    })
-            return self.retrieve_options(product.id)
+                    ProductOptionItem.objects.create(option=new_option, item_name=item)
+            return self.retrieve_options(self.product.id)
         else:
             return None
+
+    def __create_variants(self):
+        """
+        Create a default variant or crete variants by options combination
+        """
+
+        if self.options:
+            # create variants by options combination (variant product)
+            variants = []
+            option_items = [option["items"] for option in self.options_data]
+            variants = list(options_combination(*option_items))
+            # for _ in variants:
+            #     print(_)
+            # variants = ProductVariant.objects.create()
+        else:
+            # set a default variant (simple product)
+            ProductVariant.objects.create(product=self.product)
+
+        return self.retrieve_variants(self.product)
 
     def retrieve_options(self, product_id) -> Optional[List[dict]]:
         """
@@ -75,8 +85,29 @@ class ProductQuerySet(models.QuerySet):
         else:
             return None
 
-    def retrieve_variants(self):
-        ...
+    def retrieve_variants(self, product_id) -> Optional[List[dict]]:
+        """
+        Get all variants of a product
+        """
+        product_variants = []
+        variants = ProductVariant.objects.filter(product=product_id)
+        for variant in variants:
+            product_variants.append(
+                {
+                    "variant_id": variant.id,
+                    "product_id": variant.product.id,
+                    "price": {
+                        'amount': str(variant.price.amount),
+                        'currency': str(variant.price.currency)
+                    },
+                    "stock": variant.stock,
+                    "option1": variant.option1,
+                    "option2": variant.option2,
+                    "option3": variant.option3,
+                    "created_at": variant.created_at.strftime('%Y-%m-%d %H:%M:%S'),
+                    "updated_at": variant.updated_at.strftime('%Y-%m-%d %H:%M:%S')
+                })
+        return product_variants
 
 
 class Product(models.Model):
@@ -88,7 +119,7 @@ class Product(models.Model):
     product_name = models.CharField(max_length=255)
 
     # A description of the product. Supports HTML formatting.
-    # todo [] makesure the description can save and retrieve the html content
+    # TODO makesure the description can save and retrieve the html content
     description = models.TextField(blank=True)
 
     STATUS_CHOICES = [
@@ -120,11 +151,11 @@ class Product(models.Model):
     def __str__(self):
         return self.product_name
 
-    def save(self, *args, **kwargs):
-        # Check if the status field is empty or None or other names
-        if not self.status or self.status != ('active', 'archived', 'draft'):
-            self.status = 'draft'
-        super().save(*args, **kwargs)
+    # def save(self, *args, **kwargs):
+    # Check if the status field is empty or None or other names
+    # if not self.status or self.status != ('active', 'archived', 'draft'):
+    #     self.status = 'draft'
+    # super().save(*args, **kwargs)
 
 
 class ProductOption(models.Model):
@@ -159,17 +190,17 @@ class ProductVariant(models.Model):
     Product variants are created by combining different option items.
     """
     product = models.ForeignKey(Product, on_delete=models.CASCADE)
-    price = models.DecimalField(max_digits=12, decimal_places=2)
+    price = MoneyField(max_digits=12, decimal_places=2, default_currency='USD', default=0)
     stock = models.IntegerField(default=0)
 
-    option_item_1 = models.ForeignKey(
-        ProductOptionItem, related_name='option_item_1', on_delete=models.CASCADE, null=True, blank=True)
+    option1 = models.ForeignKey(
+        ProductOptionItem, related_name='option1', on_delete=models.CASCADE, null=True, blank=True)
 
-    option_item_2 = models.ForeignKey(
-        ProductOptionItem, related_name='option_item_2', on_delete=models.CASCADE, null=True, blank=True)
+    option2 = models.ForeignKey(
+        ProductOptionItem, related_name='option2', on_delete=models.CASCADE, null=True, blank=True)
 
-    option_item_3 = models.ForeignKey(
-        ProductOptionItem, related_name='option_item_3', on_delete=models.CASCADE, null=True, blank=True)
+    option3 = models.ForeignKey(
+        ProductOptionItem, related_name='option3', on_delete=models.CASCADE, null=True, blank=True)
 
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
