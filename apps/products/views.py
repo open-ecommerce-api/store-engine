@@ -57,17 +57,17 @@ class ProductView(viewsets.ModelViewSet):
         serializer.is_valid(raise_exception=True)
 
         payload = serializer.validated_data
-        product, options = Product.objects.create_product(**payload)
+        product, options, variants = Product.objects.create_product(**payload)
 
         response_body = {
             'product_id': product.id,
             'product_name': product.product_name,
             'description': product.description,
             'status': product.status,
+            'options': options,
+            'variants': variants,
             'created_at': product.created_at.strftime('%Y-%m-%d %H:%M:%S'),
-            'options': options
         }
-
         return Response(response_body, status=status.HTTP_201_CREATED)
 
     def retrieve(self, request, pk=None, **kwargs):
