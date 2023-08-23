@@ -1,3 +1,5 @@
+from datetime import datetime
+
 from django.contrib.auth import get_user_model
 from rest_framework.authtoken.models import Token
 from rest_framework import status
@@ -59,3 +61,7 @@ class BaseTestCase(APITestCase):
         for method in methods:
             response = method()
             self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+
+    def assert_datetime_format(self, date):
+        formatted_date = datetime.strptime(date, '%Y-%m-%d %H:%M:%S').strftime('%Y-%m-%d %H:%M:%S')
+        self.assertEqual(date, formatted_date)
