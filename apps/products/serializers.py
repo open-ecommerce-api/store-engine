@@ -49,7 +49,21 @@ class ProductCreateSerializer(serializers.ModelSerializer):
         ]
         if len(unique_options) > 3:
             raise serializers.ValidationError("A product can have a maximum of 3 options.")
+
+        # I need to sort option-names and item-names, for use to compare two dict in `assertEqual` function in the tests
+        for option in unique_options:
+            option['items'] = sorted(option['items'])
+        unique_options = sorted(unique_options, key=lambda x: x['option_name'])
         return unique_options
+
+    def validate_status(self, value):
+        """
+        Validate the "status" field and return `draft` if it is invalid or not set
+        """
+        valid_statuses = [status[0] for status in Product.STATUS_CHOICES]
+        if value not in valid_statuses:
+            return 'draft'
+        return value
 
 
 class ProductSerializer(serializers.ModelSerializer):
