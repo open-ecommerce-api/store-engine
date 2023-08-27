@@ -36,78 +36,133 @@ class CreateViewTest(BaseTestCase):
 
     def test_create_simple_product(self):
         """
-        TODO Test create a product by the all available inputs (assuming valid data)
-        TODO Test response data when I create simple product
-        TODO why response.data items is not in the same order as what I wrote in the view and model code?
+        Test create a product by the all available inputs (assuming valid data)
+        Test response body for simple product
         """
         self.set_admin_authorization()
-        self.maxDiff = None
+        payload = {
+            "product_name": "Test Product",
+            "description": "<p>test description</p>",
+            "status": "active",
+            "options": []
+        }
+
+        expected_data = {
+            "product_id": 1,
+            "product_name": "Test Product",
+            "description": "<p>test description</p>",
+            "status": "active",
+            "options": None,
+            "variants": [
+                {
+                    "variant_id": 1,
+                    "product_id": 1,
+                    "price": {
+                        "amount": "0.00",
+                        "currency": "USD"
+                    },
+                    "stock": 0,
+                    "option1": None,
+                    "option2": None,
+                    "option3": None
+                }
+            ]
+        }
+
+        response = self.client.post(self.product_endpoint, data=json.dumps(payload), content_type='application/json')
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+
+        # I cant check the time, but I can check the time format
+        self.assert_datetime_format(response.data.pop('created_at'))
+        self.assert_datetime_format(response.data['variants'][0].pop('created_at'))
+        self.assert_datetime_format(response.data['variants'][0].pop('updated_at'))
+
+        # I used `json.dumps` for arrange dicts
+        self.assertEqual(json.dumps(response.data), json.dumps(expected_data))
+
+    def test_create_variable_product(self):
+        # TODO Test response data when I create variant product
+        self.set_admin_authorization()
         payload = {
             "product_name": "Test Product",
             "description": "test description",
             "status": "active",
             "options": [
                 {
-                    'option_name': 'color',
-                    'items': ['red', 'green']
+                    "option_name": "color",
+                    "items": ["red", "green"]
                 },
                 {
-                    'option_name': 'material',
-                    'items': ['Cotton', 'Nylon']
+                    "option_name": "material",
+                    "items": ["Cotton", "Nylon"]
                 },
                 {
-                    'option_name': 'size',
-                    'items': ['M', 'S']
+                    "option_name": "size",
+                    "items": ["M", "S"]
                 }
             ]
         }
+
         expected_data = {
-            'description': 'test description',
-            'options': [
+            "product_id": 1,
+            "product_name": "Test Product",
+            "description": "test description",
+            "status": "active",
+            "options": [
                 {
-                    'items': [
+                    "options_id": 1,
+                    "option_name": "color",
+                    "items": [
                         {
-                            'item_id': 1,
-                            'item_name': 'green'},
-                        {
-                            'item_id': 2,
-                            'item_name': 'red'
-                        }
-                    ],
-                    'option_name': 'color',
-                    'options_id': 1
-                },
-                {
-                    'items': [
-                        {
-                            'item_id': 3,
-                            'item_name': 'Cotton'
+                            "item_id": 1,
+                            "item_name": "green"
                         },
                         {
-                            'item_id': 4,
-                            'item_name': 'Nylon'
+                            "item_id": 2,
+                            "item_name": "red"
                         }
-                    ],
-                    'option_name': 'material',
-                    'options_id': 2
+                    ]
                 },
-                {'items': [{'item_id': 5, 'item_name': 'M'},
-                           {'item_id': 6, 'item_name': 'S'}],
-                 'option_name': 'size',
-                 'options_id': 3}],
-            'product_id': 1,
-            'product_name': 'Test Product',
-            'status': 'active',
-            'variants': []}
+                {
+                    "options_id": 2,
+                    "option_name": "material",
+                    "items": [
+                        {
+                            "item_id": 3,
+                            "item_name": "Cotton"
+                        },
+                        {
+                            "item_id": 4,
+                            "item_name": "Nylon"
+                        }
+                    ]
+                },
+                {
+                    "options_id": 3,
+                    "option_name": "size",
+                    "items": [
+                        {
+                            "item_id": 5,
+                            "item_name": "M"
+                        },
+                        {
+                            "item_id": 6,
+                            "item_name": "S"
+                        }
+                    ]
+                }
+            ],
+            "variants": [],
+
+        }
         response = self.client.post(self.product_endpoint, data=json.dumps(payload), content_type='application/json')
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
 
+        # I cant check the time, but I can check the time format
         self.assert_datetime_format(response.data.pop('created_at'))
-        self.assertEqual(response.data, expected_data)
 
-    def test_create_variable_product(self):
-        # TODO Test response data when I create variant product
-        ...
+        # I used `json.dumps` for arrange dicts
+        self.assertEqual(json.dumps(response.data), json.dumps(expected_data))
 
     def test_invalid_with_empty_payload(self):
         """
