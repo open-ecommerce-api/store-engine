@@ -5,7 +5,7 @@ from django.db import IntegrityError
 from rest_framework import serializers
 from rest_framework.authtoken.models import Token
 
-from users.models import User
+from apps.users.models import User
 
 
 class SigninSerializer(serializers.Serializer):
@@ -34,7 +34,7 @@ class SigninSerializer(serializers.Serializer):
         if email and password:
             user = authenticate(username=email, password=password)
             if user:
-                    data['user'] = user
+                data['user'] = user
             else:
                 raise serializers.ValidationError('Unable to log in with provided credentials.')
         else:

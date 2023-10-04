@@ -40,10 +40,15 @@ INSTALLED_APPS = [
     # External Packages
     'rest_framework',
     'drf_spectacular',
+    # 'drf_spectacular_sidecar',
     'rest_framework.authtoken',
+    'djmoney',
 
     # Made by the team
-    'users',
+    'apps.users',
+    'apps.attributes',
+    'apps.products',
+    'apps.demo',
 ]
 
 REST_FRAMEWORK = {
@@ -60,13 +65,20 @@ REST_FRAMEWORK = {
 }
 
 SPECTACULAR_SETTINGS = {
-
-    # set 'COMPONENT_SPLIT_REQUEST' to 'True' will enable POST execute in swagger ui
-    'COMPONENT_SPLIT_REQUEST': True,
-
-    "TITLE": "Django Ecommerce API",
+    # ------ for work offline (have no direct access to the internet ------
+    # 'SWAGGER_UI_DIST': 'SIDECAR',  # shorthand to use the sidecar instead
+    # 'SWAGGER_UI_FAVICON_HREF': 'SIDECAR',
+    # 'REDOC_DIST': 'SIDECAR',
+    # ---------------------------------------------------------------------
+    "TITLE": "Store Engine API",
     "DESCRIPTION": "An ecommerce backend-API created using Django and DRF (Django Rest Framework).",
-    "VERSION": "0.1.0 Beta",
+    "VERSION": "0.1.0",
+
+    # hide `/api/schema/` in swagger UI
+    'SERVE_INCLUDE_SCHEMA': False,
+
+    # enable POST execute in swagger ui
+    # 'COMPONENT_SPLIT_REQUEST': True,
 }
 
 MIDDLEWARE = [
@@ -116,11 +128,11 @@ WSGI_APPLICATION = 'config.wsgi.application'
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql',
-        'NAME': 'postgres',
+        'NAME': 'open_ecommerce_catalog',
         'USER': 'postgres',
         'PASSWORD': 'admin',
-        'HOST': 'db',  # used in docker
-        # 'HOST': 'localhost', # used in local
+        # 'HOST': 'db',  # used in docker
+        'HOST': 'localhost',  # used in local
         'PORT': 5432,
     }
 }
@@ -171,5 +183,5 @@ MEDIA_ROOT = BASE_DIR / 'media'
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 AUTH_USER_MODEL = 'users.User'
-DEFAULT_FROM_EMAIL = 'noreply@pysell.ir'
+DEFAULT_FROM_EMAIL = 'noreply@example.com'
 EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
